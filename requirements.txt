@@ -1,0 +1,43 @@
+# Core Flask dependencies
+Flask==3.0.0
+Flask-CORS==4.0.0
+Flask-SQLAlchemy==3.1.1
+
+# Database
+SQLAlchemy==2.0.23
+
+# AI Provider SDKs
+anthropic==0.8.1
+openai==1.6.1
+google-generativeai==0.3.2
+
+# Async processing
+asyncio-mqtt==0.13.0
+
+# HTTP requests
+requests==2.31.0
+httpx==0.26.0
+
+# Data processing
+numpy==1.25.2
+pandas==2.1.4
+
+# Configuration and environment
+python-dotenv==1.0.0
+
+# Logging and monitoring
+structlog==23.2.0
+
+# Testing
+pytest==7.4.3
+pytest-asyncio==0.21.1
+pytest-cov==4.1.0
+
+# Security
+cryptography==41.0.8
+
+# Production server
+gunicorn==21.2.0
+
+# Health monitoring
+psutil==5.9.6

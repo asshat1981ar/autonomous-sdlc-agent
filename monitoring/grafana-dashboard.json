@@ -1,0 +1,189 @@
+{
+  "dashboard": {
+    "id": null,
+    "title": "Autonomous SDLC Agent Platform",
+    "tags": ["sdlc", "ai", "multi-agent"],
+    "style": "dark",
+    "timezone": "browser",
+    "panels": [
+      {
+        "id": 1,
+        "title": "Backend Response Time",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "histogram_quantile(0.95, rate(flask_request_duration_seconds_bucket[5m]))",
+            "legendFormat": "95th percentile"
+          },
+          {
+            "expr": "histogram_quantile(0.50, rate(flask_request_duration_seconds_bucket[5m]))",
+            "legendFormat": "50th percentile"
+          }
+        ],
+        "yAxes": [
+          {
+            "label": "Response Time (seconds)"
+          }
+        ],
+        "gridPos": {
+          "h": 8,
+          "w": 12,
+          "x": 0,
+          "y": 0
+        }
+      },
+      {
+        "id": 2,
+        "title": "Request Rate",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "rate(flask_request_total[5m])",
+            "legendFormat": "Requests/sec"
+          }
+        ],
+        "yAxes": [
+          {
+            "label": "Requests per second"
+          }
+        ],
+        "gridPos": {
+          "h": 8,
+          "w": 12,
+          "x": 12,
+          "y": 0
+        }
+      },
+      {
+        "id": 3,
+        "title": "AI Agent Collaboration Success Rate",
+        "type": "singlestat",
+        "targets": [
+          {
+            "expr": "rate(sdlc_collaboration_success_total[5m]) / rate(sdlc_collaboration_total[5m]) * 100",
+            "legendFormat": "Success Rate %"
+          }
+        ],
+        "gridPos": {
+          "h": 4,
+          "w": 6,
+          "x": 0,
+          "y": 8
+        }
+      },
+      {
+        "id": 4,
+        "title": "Active Sessions",
+        "type": "singlestat",
+        "targets": [
+          {
+            "expr": "sdlc_active_sessions",
+            "legendFormat": "Sessions"
+          }
+        ],
+        "gridPos": {
+          "h": 4,
+          "w": 6,
+          "x": 6,
+          "y": 8
+        }
+      },
+      {
+        "id": 5,
+        "title": "Memory Usage",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "process_resident_memory_bytes{job=\"sdlc-backend\"}",
+            "legendFormat": "Backend Memory"
+          },
+          {
+            "expr": "container_memory_usage_bytes{pod=~\"sdlc-frontend.*\"}",
+            "legendFormat": "Frontend Memory"
+          }
+        ],
+        "yAxes": [
+          {
+            "label": "Memory (bytes)"
+          }
+        ],
+        "gridPos": {
+          "h": 8,
+          "w": 12,
+          "x": 12,
+          "y": 8
+        }
+      },
+      {
+        "id": 6,
+        "title": "CPU Usage",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "rate(process_cpu_seconds_total{job=\"sdlc-backend\"}[5m]) * 100",
+            "legendFormat": "Backend CPU %"
+          },
+          {
+            "expr": "rate(container_cpu_usage_seconds_total{pod=~\"sdlc-frontend.*\"}[5m]) * 100",
+            "legendFormat": "Frontend CPU %"
+          }
+        ],
+        "yAxes": [
+          {
+            "label": "CPU Usage %"
+          }
+        ],
+        "gridPos": {
+          "h": 8,
+          "w": 12,
+          "x": 0,
+          "y": 16
+        }
+      },
+      {
+        "id": 7,
+        "title": "Paradigm Usage Distribution",
+        "type": "piechart",
+        "targets": [
+          {
+            "expr": "sum by (paradigm) (increase(sdlc_paradigm_usage_total[1h]))",
+            "legendFormat": "{{paradigm}}"
+          }
+        ],
+        "gridPos": {
+          "h": 8,
+          "w": 12,
+          "x": 12,
+          "y": 16
+        }
+      },
+      {
+        "id": 8,
+        "title": "Error Rate",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "rate(flask_request_total{status=~\"4..|5..\"}[5m])",
+            "legendFormat": "Error Rate"
+          }
+        ],
+        "yAxes": [
+          {
+            "label": "Errors per second"
+          }
+        ],
+        "gridPos": {
+          "h": 6,
+          "w": 24,
+          "x": 0,
+          "y": 24
+        }
+      }
+    ],
+    "time": {
+      "from": "now-1h",
+      "to": "now"
+    },
+    "refresh": "5s"
+  }
+}

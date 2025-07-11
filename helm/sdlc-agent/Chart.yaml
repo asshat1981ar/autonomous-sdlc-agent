@@ -1,0 +1,23 @@
+apiVersion: v2
+name: sdlc-agent
+description: A Helm chart for Autonomous SDLC Agent Platform
+type: application
+version: 1.0.0
+appVersion: "1.0.0"
+home: https://github.com/asshat1981ar/autonomous-sdlc-agent
+sources:
+  - https://github.com/asshat1981ar/autonomous-sdlc-agent
+maintainers:
+  - name: asshat1981ar
+    email: westonaaron675@gmail.com
+    url: https://github.com/asshat1981ar
+keywords:
+  - ai
+  - sdlc
+  - multi-agent
+  - collaboration
+  - development
+  - automation
+annotations:
+  category: Development
+  licenses: MIT
