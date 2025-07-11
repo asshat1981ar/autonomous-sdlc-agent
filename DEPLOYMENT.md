@@ -24,6 +24,10 @@ This guide covers deploying the Autonomous SDLC Agent Platform using Docker, Kub
 git clone https://github.com/asshat1981ar/autonomous-sdlc-agent.git
 cd autonomous-sdlc-agent
 
+# Pull pre-built images from GitHub Container Registry
+docker pull ghcr.io/asshat1981ar/autonomous-sdlc-agent/backend:latest
+docker pull ghcr.io/asshat1981ar/autonomous-sdlc-agent/frontend:latest
+
 # Start all services
 docker-compose up -d
 
@@ -33,16 +37,14 @@ open http://localhost
 
 ### Individual Container Deployment
 ```bash
-# Build backend
+# Option 1: Use pre-built images from GitHub Container Registry
+docker run -d -p 5000:5000 --name backend ghcr.io/asshat1981ar/autonomous-sdlc-agent/backend:latest
+docker run -d -p 80:80 --name frontend ghcr.io/asshat1981ar/autonomous-sdlc-agent/frontend:latest
+
+# Option 2: Build locally
 docker build -f docker/Dockerfile.backend -t sdlc-backend .
-
-# Build frontend  
 docker build -f docker/Dockerfile.frontend -t sdlc-frontend .
-
-# Run backend
 docker run -d -p 5000:5000 --name backend sdlc-backend
-
-# Run frontend
 docker run -d -p 80:80 --name frontend sdlc-frontend
 ```
 
@@ -110,23 +112,21 @@ graph LR
     F --> G[Cleanup]
 ```
 
-### Setting Up CI/CD
+### Setting Up CI/CD (GitHub-Only)
 
-1. **Configure Secrets** in your GitHub repository:
-   ```
-   AWS_ACCESS_KEY_ID
-   AWS_SECRET_ACCESS_KEY
-   SLACK_WEBHOOK_URL (optional)
-   ```
+1. **No Additional Secrets Required**:
+   - Uses GitHub Container Registry (ghcr.io) with built-in GITHUB_TOKEN
+   - Optional: Add SLACK_WEBHOOK_URL for notifications
 
-2. **Configure Container Registry**:
-   - The pipeline uses GitHub Container Registry (ghcr.io)
-   - Images are automatically pushed on successful builds
+2. **Automatic Container Registry**:
+   - Images automatically pushed to GitHub Container Registry
+   - Public images: `ghcr.io/your-username/repository-name/backend:latest`
+   - No additional authentication needed
 
-3. **Environment Configuration**:
-   - Staging deploys from `develop` branch
-   - Production deploys from release tags
-   - Manual approval required for production
+3. **Simple Workflow**:
+   - Triggers on push to `main` and `develop` branches
+   - Runs tests, builds, and pushes images automatically
+   - Ready for manual deployment or integration with Kubernetes
 
 ## 🛠️ Configuration
 
