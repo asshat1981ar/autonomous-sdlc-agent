@@ -453,5 +453,46 @@ async def test_enhanced_orchestrator():
     
     return enhanced_orchestrator
 
+async def enter_autonomous_sdlc_mode(task: str, agents: list):
+    """
+    Function to enter autonomous SDLC mode using the swarm paradigm.
+    """
+    result = await enhanced_orchestrator.collaborate(
+        session_id=f"autonomous_sdlc_{int(time.time())}",
+        paradigm='swarm',
+        task=task,
+        agents=agents,
+        context={'mode': 'autonomous_sdlc'}
+    )
+    return result
+
+def run_autonomous_sdlc_mode(task: str, agents: list):
+    """
+    Synchronous wrapper to run the autonomous SDLC mode.
+    """
+    return asyncio.run(enter_autonomous_sdlc_mode(task, agents))
+
+async def test_autonomous_sdlc_mode():
+    """Thorough test for autonomous SDLC mode functions"""
+    print("Testing Autonomous SDLC Mode")
+    print("=" * 50)
+    
+    task = "Develop a microservice with REST API and database integration"
+    agents = ['gemini', 'claude', 'openai']
+    
+    # Test async function
+    result_async = await enter_autonomous_sdlc_mode(task, agents)
+    print(f"Async autonomous SDLC mode result status: {result_async.get('status', 'unknown')}")
+    
+    # Test sync wrapper
+    result_sync = run_autonomous_sdlc_mode(task, agents)
+    print(f"Sync autonomous SDLC mode result status: {result_sync.get('status', 'unknown')}")
+    
+    return result_async, result_sync
+
 if __name__ == "__main__":
-    asyncio.run(test_enhanced_orchestrator())
+    import sys
+    if len(sys.argv) > 1 and sys.argv[1] == "test_autonomous":
+        asyncio.run(test_autonomous_sdlc_mode())
+    else:
+        asyncio.run(test_enhanced_orchestrator())
