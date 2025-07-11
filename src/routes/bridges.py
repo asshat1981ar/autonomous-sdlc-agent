@@ -14,19 +14,20 @@ from src.services.ai_providers_simple import orchestrator
 logger = logging.getLogger(__name__)
 bridges_bp = Blueprint('bridges', __name__)
 
-def run_async(func):
-    """Helper to run async functions in Flask routes"""
-    def wrapper(*args, **kwargs):
+def run_async_bridge(func):
+    """Helper to run async functions in Flask bridge routes"""
+    def bridge_wrapper(*args, **kwargs):
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)
         try:
             return loop.run_until_complete(func(*args, **kwargs))
         finally:
             loop.close()
-    return wrapper
+    bridge_wrapper.__name__ = func.__name__
+    return bridge_wrapper
 
 @bridges_bp.route('/bridges/status', methods=['GET'])
-@run_async
+@run_async_bridge
 async def get_bridge_status():
     """Get status of all bridge services"""
     try:
@@ -43,7 +44,7 @@ async def get_bridge_status():
         }), 500
 
 @bridges_bp.route('/bridges/initialize', methods=['POST'])
-@run_async
+@run_async_bridge
 async def initialize_bridges():
     """Initialize bridge services"""
     try:
@@ -61,7 +62,7 @@ async def initialize_bridges():
         }), 500
 
 @bridges_bp.route('/bridges/generate-code', methods=['POST'])
-@run_async
+@run_async_bridge
 async def generate_code():
     """Generate code using bridge services"""
     try:
@@ -96,7 +97,7 @@ async def generate_code():
         }), 500
 
 @bridges_bp.route('/bridges/analyze-code', methods=['POST'])
-@run_async
+@run_async_bridge
 async def analyze_code():
     """Analyze code using bridge services"""
     try:
@@ -129,7 +130,7 @@ async def analyze_code():
         }), 500
 
 @bridges_bp.route('/bridges/optimize-code', methods=['POST'])
-@run_async
+@run_async_bridge
 async def optimize_code():
     """Optimize code using bridge services"""
     try:
@@ -162,7 +163,7 @@ async def optimize_code():
         }), 500
 
 @bridges_bp.route('/bridges/debug-code', methods=['POST'])
-@run_async
+@run_async_bridge
 async def debug_code():
     """Debug code using bridge services"""
     try:
@@ -197,7 +198,7 @@ async def debug_code():
         }), 500
 
 @bridges_bp.route('/bridges/claude-code/analyze', methods=['POST'])
-@run_async
+@run_async_bridge
 async def claude_code_analyze():
     """Direct Claude Code bridge analysis"""
     try:
@@ -223,7 +224,7 @@ async def claude_code_analyze():
         }), 500
 
 @bridges_bp.route('/bridges/gemini-cli/generate', methods=['POST'])
-@run_async
+@run_async_bridge
 async def gemini_cli_generate():
     """Direct Gemini CLI bridge generation"""
     try:
@@ -249,7 +250,7 @@ async def gemini_cli_generate():
         }), 500
 
 @bridges_bp.route('/bridges/github-codex/complete', methods=['POST'])
-@run_async
+@run_async_bridge
 async def github_codex_complete():
     """Direct GitHub Codex bridge completion"""
     try:
@@ -274,7 +275,7 @@ async def github_codex_complete():
         }), 500
 
 @bridges_bp.route('/bridges/blackbox-ai/analyze', methods=['POST'])
-@run_async
+@run_async_bridge
 async def blackbox_ai_analyze():
     """Direct Blackbox.ai bridge analysis"""
     try:
@@ -300,7 +301,7 @@ async def blackbox_ai_analyze():
         }), 500
 
 @bridges_bp.route('/bridges/health', methods=['GET'])
-@run_async
+@run_async_bridge
 async def bridges_health():
     """Health check for individual bridges"""
     try:
