@@ -1,0 +1,50 @@
+version: '3.8'
+
+# Development environment overrides
+services:
+  sdlc-orchestrator:
+    build:
+      target: backend-builder  # Use builder stage for development
+    environment:
+      - FLASK_ENV=development
+      - FLASK_DEBUG=1
+      - DATABASE_URL=postgresql://sdlc_user:sdlc_pass@postgres:5432/sdlc_dev_db
+    volumes:
+      - .:/app  # Mount source code for hot reloading
+      - /app/node_modules  # Exclude node_modules
+      - dev_logs:/app/logs
+    ports:
+      - "5000:5000"
+      - "5678:5678"  # Debugger port
+    command: ["python", "-m", "flask", "run", "--host=0.0.0.0", "--port=5000", "--debug"]
+
+  postgres:
+    environment:
+      - POSTGRES_DB=sdlc_dev_db
+    ports:
+      - "5433:5432"  # Different port for dev
+
+  # Development tools
+  postgres-admin:
+    image: adminer
+    ports:
+      - "8080:8080"
+    depends_on:
+      - postgres
+    networks:
+      - sdlc_network
+
+  # Redis Commander for Redis management
+  redis-commander:
+    image: rediscommander/redis-commander:latest
+    environment:
+      - REDIS_HOSTS=local:redis:6379
+    ports:
+      - "8081:8081"
+    depends_on:
+      - redis
+    networks:
+      - sdlc_network
+
+volumes:
+  dev_logs:

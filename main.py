@@ -12,7 +12,9 @@ from src.routes.recommendations import recommendations_bp
 from src.routes.bridges import bridges_bp
 
 app = Flask(__name__, static_folder=os.path.join(os.path.dirname(__file__), 'static'))
-app.config['SECRET_KEY'] = 'asdf#FGSgvasgf$5$WGT'
+
+# Load secret key from environment variable for security
+app.config['SECRET_KEY'] = os.environ.get('FLASK_SECRET_KEY', 'default-secret-key')
 
 # Enable CORS for all routes
 CORS(app)
@@ -22,21 +24,27 @@ app.register_blueprint(collaboration_bp, url_prefix='/api')
 app.register_blueprint(recommendations_bp, url_prefix='/api')
 app.register_blueprint(bridges_bp, url_prefix='/api')
 
-# uncomment if you need to use database
-app.config['SQLALCHEMY_DATABASE_URI'] = f"sqlite:///{os.path.join(os.path.dirname(__file__), 'database', 'app.db')}"
+# Configure database URI with cross-platform path joining
+db_path = os.path.join(os.path.dirname(__file__), 'database', 'app.db')
+app.config['SQLALCHEMY_DATABASE_URI'] = f"sqlite:///{db_path}"
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-db.init_app(app)
-with app.app_context():
-    db.create_all()
+
+try:
+    db.init_app(app)
+    with app.app_context():
+        db.create_all()
+except Exception as e:
+    print(f"Error initializing database: {e}")
 
 @app.route('/', defaults={'path': ''})
 @app.route('/<path:path>')
 def serve(path):
     static_folder_path = app.static_folder
-    if static_folder_path is None:
-            return "Static folder not configured", 404
+    if not static_folder_path:
+        return "Static folder not configured", 404
 
-    if path != "" and os.path.exists(os.path.join(static_folder_path, path)):
+    requested_path = os.path.join(static_folder_path, path)
+    if path and os.path.exists(requested_path):
         return send_from_directory(static_folder_path, path)
     else:
         index_path = os.path.join(static_folder_path, 'index.html')

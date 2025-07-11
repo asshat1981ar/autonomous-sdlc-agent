@@ -1,0 +1,51 @@
+# .github/copilot-instructions.md
+
+## Autonomous SDLC Agent Platform – Copilot Instructions
+
+### 1. System Architecture
+
+- **Frontend**: React (TSX) components in root. Main entry: `App.tsx`. Panels and selectors (e.g., `AIProviderSelector.tsx`) are modular.
+- **Backend**: Python FastAPI (`main.py`). Logic split into:
+  - `src/models/`: Data models
+  - `src/routes/`: API endpoints (grouped by domain)
+  - `src/services/`: Core logic, AI provider bridges, recommendation engine
+- **AI Provider Bridges**: Each provider in `src/services/bridges/` implements a common interface. Register new bridges in `ai_providers.py`.
+- **DevOps**: Use `docker-compose.yml` for local dev. K8s manifests in `k8s/`, Helm in `helm/`. Monitoring via `monitoring/`.
+
+### 2. Autonomous Workflows
+
+- **Build/Run**:
+  - Local: `docker-compose up`
+  - K8s: Apply manifests in `k8s/base/` or use Helm chart
+- **Testing**:
+  - Python: `pytest` or `python test_orchestrator.py`
+  - Quick checks: `scripts/quick-test.sh`, `scripts/test-locally.sh`
+- **Frontend**:
+  - Standard React: `npm install`, `npm run build`
+- **Database**: SQLite (`database/app.db`), schema managed in code
+
+### 3. Conventions for Agents
+
+- **Provider Pattern**: New AI providers = new bridge in `src/services/bridges/` + registration in `ai_providers.py`
+- **API**: All endpoints in `src/routes/`, imported in `main.py`
+- **Types**: Shared TS types in `types.d.ts`, `types.ts`
+- **Config**: Use env vars via Docker/K8s; no `.env` in repo
+- **Docs**: `AGENT.md` (agent design), `README.md` (quick start)
+
+### 4. Integration & Communication
+
+- **External APIs**: Each bridge manages its own integration logic
+- **Webhooks**: Frontend (`webhookService.ts`), backend (`src/routes/`)
+- **Monitoring**: Prometheus/Grafana in `monitoring/`
+
+### 5. Rapid Extension Examples
+
+- **Add AI Provider**: Copy a bridge (e.g., `blackbox_ai_bridge.py`), implement interface, register in `ai_providers.py`
+- **Add API Route**: New file in `src/routes/`, import in `main.py`
+
+### 6. Key Paths
+
+- `src/services/bridges/` – AI integrations
+- `src/routes/` – API endpoints
+- `docker/`, `k8s/`, `helm/` – Deployment
+- `scripts/` – Automation

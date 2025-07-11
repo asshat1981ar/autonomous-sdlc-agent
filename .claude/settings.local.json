@@ -1,0 +1,39 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python:*)",
+      "Bash(node:*)",
+      "Bash(npm:*)",
+      "Bash(source:*)",
+      "Bash(pip install:*)",
+      "Bash(mkdir:*)",
+      "Bash(mv:*)",
+      "Bash(curl:*)",
+      "Bash(git init:*)",
+      "Bash(rm:*)",
+      "Bash(chmod:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git config:*)",
+      "Bash(./scripts/test-locally.sh:*)",
+      "Bash(./scripts/quick-test.sh:*)",
+      "Bash(gh auth:*)",
+      "Bash(git remote add:*)",
+      "Bash(git branch:*)",
+      "Bash(./scripts/github-setup.sh:*)",
+      "Bash(echo \"Testing Docker backend build...\" docker build -f docker/Dockerfile.backend -t test-backend-bridges .)",
+      "Bash(echo \"Testing Docker backend build with verbose output...\" docker build -f docker/Dockerfile.backend -t test-backend-bridges .)",
+      "Bash(echo \"Testing npm dependencies...\" npm ci --no-progress)",
+      "Bash(./scripts/test-bridge-integration.sh:*)",
+      "Bash(pkill:*)",
+      "Bash(true)",
+      "Bash(git push:*)",
+      "Bash(echo \"\" echo \"📁 Your Complete Platform Ready for GitHub:\" echo \"===========================================\" echo \"\" git log --oneline -10 echo \"\" echo \"📊 Files ready for deployment:\" git ls-files)",
+      "Bash(git remote:*)",
+      "Bash(echo \"   - Click ''Add file'' > ''Upload files''\")",
+      "Bash(ls -la autonomous-sdlc-agent-platform.tar.gz)",
+      "Bash(echo \"   - If repository has content: Click ''Add file'' > ''Upload files''\")"
+    ],
+    "deny": []
+  }
+}

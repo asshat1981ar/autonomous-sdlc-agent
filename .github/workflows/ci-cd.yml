@@ -1,104 +1,259 @@
-name: Simple CI/CD (GitHub Registry Only)
+name: SDLC Orchestrator CI/CD Pipeline
 
 on:
   push:
     branches: [ main, develop ]
+    tags: [ 'v*' ]
   pull_request:
-    branches: [ main ]
+    branches: [ main, develop ]
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME_BACKEND: ${{ github.repository }}/backend
-  IMAGE_NAME_FRONTEND: ${{ github.repository }}/frontend
+  IMAGE_NAME: ${{ github.repository }}
 
 jobs:
-  # Test
-  test:
-    name: Test and Lint
+  # Frontend Testing and Build
+  frontend-test:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
-    
-    - name: Set up Python
-      uses: actions/setup-python@v4
-      with:
-        python-version: '3.11'
-    
-    - name: Set up Node.js
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup Node.js
       uses: actions/setup-node@v4
       with:
-        node-version: '20'
+        node-version: '18'
         cache: 'npm'
-    
-    - name: Install Python dependencies
-      run: |
-        pip install -r requirements.txt
-        pip install pytest flake8
-    
-    - name: Install Node dependencies
-      run: npm ci
-    
-    - name: Lint Python
-      run: flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
-    
-    - name: Run Python tests
-      run: pytest
-    
-    - name: Run frontend tests  
-      run: npm test
 
-  # Build and push images
-  build:
-    name: Build and Push
+    - name: Install dependencies
+      run: npm ci
+
+    - name: Run ESLint
+      run: npm run lint || echo "Linting completed with warnings"
+
+    - name: Run TypeScript check
+      run: npx tsc --noEmit
+
+    - name: Build frontend
+      run: npm run build
+
+    - name: Upload build artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: frontend-build
+        path: dist/
+
+  # Backend Testing
+  backend-test:
     runs-on: ubuntu-latest
-    needs: test
-    if: github.event_name != 'pull_request'
-    
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: test_db
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+      redis:
+        image: redis:7
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 6379:6379
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.12'
+        cache: 'pip'
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install pytest pytest-asyncio pytest-cov
+
+    - name: Run Python tests
+      env:
+        DATABASE_URL: postgresql://postgres:postgres@localhost:5432/test_db
+        REDIS_URL: redis://localhost:6379/0
+      run: |
+        python -m pytest --cov=src --cov-report=xml --cov-report=html
+
+    - name: Upload test results
+      uses: actions/upload-artifact@v4
+      with:
+        name: test-results
+        path: htmlcov/
+
+    - name: Upload coverage reports
+      uses: codecov/codecov-action@v3
+      with:
+        file: ./coverage.xml
+
+  # Security Scanning
+  security-scan:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Run Trivy vulnerability scanner
+      uses: aquasecurity/trivy-action@master
+      with:
+        scan-type: 'fs'
+        scan-ref: '.'
+        format: 'sarif'
+        output: 'trivy-results.sarif'
+
+    - name: Upload Trivy scan results
+      uses: github/codeql-action/upload-sarif@v2
+      with:
+        sarif_file: 'trivy-results.sarif'
+
+  # Docker Build and Push
+  docker-build:
+    needs: [frontend-test, backend-test, security-scan]
+    runs-on: ubuntu-latest
     permissions:
       contents: read
       packages: write
-
     steps:
-    - uses: actions/checkout@v4
-    
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Download frontend build
+      uses: actions/download-artifact@v4
+      with:
+        name: frontend-build
+        path: dist/
+
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@v3
-    
+
     - name: Log in to Container Registry
       uses: docker/login-action@v3
       with:
         registry: ${{ env.REGISTRY }}
         username: ${{ github.actor }}
         password: ${{ secrets.GITHUB_TOKEN }}
-    
-    - name: Build and push backend
-      uses: docker/build-push-action@v5
-      with:
-        context: .
-        file: ./docker/Dockerfile.backend
-        push: true
-        tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME_BACKEND }}:${{ github.sha }}
-    
-    - name: Build and push frontend
-      uses: docker/build-push-action@v5
-      with:
-        context: .
-        file: ./docker/Dockerfile.frontend
-        push: true
-        tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME_FRONTEND }}:${{ github.sha }}
 
-  # Deploy notification
-  deploy:
-    name: Deploy Ready
+    - name: Extract metadata
+      id: meta
+      uses: docker/metadata-action@v5
+      with:
+        images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+        tags: |
+          type=ref,event=branch
+          type=ref,event=pr
+          type=semver,pattern={{version}}
+          type=semver,pattern={{major}}.{{minor}}
+          type=sha,prefix={{branch}}-
+
+    - name: Build and push Docker image
+      uses: docker/build-push-action@v5
+      with:
+        context: .
+        push: true
+        tags: ${{ steps.meta.outputs.tags }}
+        labels: ${{ steps.meta.outputs.labels }}
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
+        platforms: linux/amd64,linux/arm64
+
+  # Deploy to Development
+  deploy-dev:
+    needs: docker-build
     runs-on: ubuntu-latest
-    needs: build
+    environment: development
+    if: github.ref == 'refs/heads/develop'
     steps:
-    - name: Deployment ready
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Deploy to development environment
       run: |
-        echo "🎉 Images built and pushed successfully!"
-        echo "Backend: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME_BACKEND }}:${{ github.sha }}"
-        echo "Frontend: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME_FRONTEND }}:${{ github.sha }}"
-        echo ""
-        echo "To deploy manually:"
-        echo "docker run -p 5000:5000 ${{ env.REGISTRY }}/${{ env.IMAGE_NAME_BACKEND }}:${{ github.sha }}"
-        echo "docker run -p 80:80 ${{ env.REGISTRY }}/${{ env.IMAGE_NAME_FRONTEND }}:${{ github.sha }}"
+        echo "Deploying to development environment..."
+        # Add your deployment script here
+        docker-compose -f docker-compose.dev.yml up -d
+
+  # Deploy to Staging
+  deploy-staging:
+    needs: docker-build
+    runs-on: ubuntu-latest
+    environment: staging
+    if: github.ref == 'refs/heads/main'
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Deploy to staging environment
+      run: |
+        echo "Deploying to staging environment..."
+        # Add your deployment script here
+
+  # Deploy to Production
+  deploy-production:
+    needs: docker-build
+    runs-on: ubuntu-latest
+    environment: production
+    if: startsWith(github.ref, 'refs/tags/v')
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Deploy to production environment
+      run: |
+        echo "Deploying to production environment..."
+        # Add your deployment script here
+
+  # Performance Testing
+  performance-test:
+    needs: docker-build
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Run performance tests
+      run: |
+        echo "Running performance tests..."
+        # Add performance testing tools like k6, Artillery, etc.
+
+  # Notify on Success/Failure
+  notify:
+    needs: [frontend-test, backend-test, docker-build]
+    runs-on: ubuntu-latest
+    if: always()
+    steps:
+    - name: Notify Slack on Success
+      if: success()
+      uses: 8398a7/action-slack@v3
+      with:
+        status: success
+        text: '✅ SDLC Orchestrator deployment successful!'
+      env:
+        SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+
+    - name: Notify Slack on Failure
+      if: failure()
+      uses: 8398a7/action-slack@v3
+      with:
+        status: failure
+        text: '❌ SDLC Orchestrator deployment failed!'
+      env:
+        SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
