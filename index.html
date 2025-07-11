@@ -1,0 +1,945 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Collaborative Coding Platform</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-core.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+    <style>
+        .paradigm-card {
+            transition: all 0.3s ease;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        .paradigm-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+        }
+        .agent-badge {
+            background: linear-gradient(45deg, #f093fb 0%, #f5576c 100%);
+        }
+        .result-container {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 15px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        .recommendation-card {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            border-radius: 15px;
+            padding: 20px;
+            margin: 20px 0;
+            border: 2px solid rgba(255,255,255,0.2);
+        }
+        .confidence-bar {
+            background: linear-gradient(90deg, #ff6b6b 0%, #feca57 50%, #48dbfb 100%);
+            height: 8px;
+            border-radius: 4px;
+            transition: width 0.3s ease;
+        }
+        .loading-spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #3498db;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 2s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .smart-input {
+            background: rgba(255,255,255,0.1);
+            border: 2px solid rgba(255,255,255,0.2);
+            border-radius: 10px;
+            transition: all 0.3s ease;
+        }
+        .smart-input:focus {
+            border-color: #4facfe;
+            box-shadow: 0 0 20px rgba(79, 172, 254, 0.3);
+        }
+    </style>
+</head>
+<body class="bg-gray-900 text-white min-h-screen">
+    <div id="app">
+        <!-- Header -->
+        <header class="bg-gray-800 shadow-lg">
+            <div class="container mx-auto px-6 py-4">
+                <div class="flex items-center justify-between">
+                    <h1 class="text-3xl font-bold bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent">
+                        Collaborative Coding Platform
+                    </h1>
+                    <nav class="flex space-x-4">
+                        <button @click="activeTab = 'paradigms'" 
+                                :class="{'bg-blue-600': activeTab === 'paradigms', 'bg-gray-700': activeTab !== 'paradigms'}"
+                                class="px-4 py-2 rounded-lg transition-colors">
+                            Paradigms
+                        </button>
+                        <button @click="activeTab = 'sessions'" 
+                                :class="{'bg-blue-600': activeTab === 'sessions', 'bg-gray-700': activeTab !== 'sessions'}"
+                                class="px-4 py-2 rounded-lg transition-colors">
+                            Sessions
+                        </button>
+                        <button @click="activeTab = 'demo'" 
+                                :class="{'bg-orange-600': activeTab === 'demo', 'bg-gray-700': activeTab !== 'demo'}"
+                                class="px-4 py-2 rounded-lg transition-colors">
+                            Live Demo
+                        </button>
+                    </nav>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="container mx-auto px-6 py-8">
+            <!-- Paradigms Tab -->
+            <div v-if="activeTab === 'paradigms'" class="space-y-8">
+                <div class="text-center">
+                    <h2 class="text-4xl font-bold mb-4">Five Revolutionary Paradigms</h2>
+                    <p class="text-xl text-gray-300 mb-8">Explore different approaches to collaborative coding with AI agents through command-line interfaces</p>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <div v-for="paradigm in paradigms" :key="paradigm.id" class="paradigm-card rounded-lg p-6 text-white">
+                        <h3 class="text-xl font-bold mb-3">{{ paradigm.name }}</h3>
+                        <p class="text-gray-200 mb-4">{{ paradigm.description }}</p>
+                        <div class="space-y-2">
+                            <span v-for="feature in paradigm.features" :key="feature" 
+                                  class="inline-block bg-white bg-opacity-20 rounded-full px-3 py-1 text-sm mr-2 mb-2">
+                                {{ feature }}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sessions Tab -->
+            <div v-if="activeTab === 'sessions'" class="space-y-8">
+                <div class="text-center">
+                    <h2 class="text-4xl font-bold mb-4">Collaboration Sessions</h2>
+                    <p class="text-xl text-gray-300 mb-8">Manage and track your collaborative coding sessions</p>
+                </div>
+
+                <div class="bg-gray-800 rounded-lg p-6">
+                    <h3 class="text-2xl font-bold mb-4">Create New Session</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <input v-model="newSession.name" placeholder="Session Name" 
+                               class="smart-input p-3 text-white placeholder-gray-400">
+                        <select v-model="newSession.paradigm" class="smart-input p-3 text-white">
+                            <option value="">Select Paradigm</option>
+                            <option v-for="paradigm in paradigms" :key="paradigm.id" :value="paradigm.id">
+                                {{ paradigm.name }}
+                            </option>
+                        </select>
+                    </div>
+                    <button @click="createSession" class="mt-4 bg-blue-600 hover:bg-blue-700 px-6 py-3 rounded-lg transition-colors">
+                        Create Session
+                    </button>
+                </div>
+
+                <div v-if="sessions.length > 0" class="space-y-4">
+                    <h3 class="text-2xl font-bold">Recent Sessions</h3>
+                    <div v-for="session in sessions" :key="session.id" class="bg-gray-800 rounded-lg p-4">
+                        <div class="flex justify-between items-center">
+                            <div>
+                                <h4 class="text-lg font-semibold">{{ session.name }}</h4>
+                                <p class="text-gray-400">{{ session.paradigm }} • {{ session.created_at }}</p>
+                            </div>
+                            <button @click="loadSession(session)" class="bg-green-600 hover:bg-green-700 px-4 py-2 rounded transition-colors">
+                                Load
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Live Demo Tab -->
+            <div v-if="activeTab === 'demo'" class="space-y-8">
+                <div class="text-center">
+                    <h2 class="text-4xl font-bold mb-4">Live Collaboration Demo</h2>
+                    <p class="text-xl text-gray-300 mb-8">Experience the power of collaborative AI coding in real-time</p>
+                </div>
+
+                <!-- Smart Task Input with Recommendations -->
+                <div class="bg-gray-800 rounded-lg p-6">
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium mb-2">Task Description</label>
+                            <textarea v-model="taskDescription" 
+                                      @input="onTaskInput"
+                                      placeholder="Describe what you want to build or accomplish..."
+                                      class="smart-input w-full p-4 text-white placeholder-gray-400 h-32 resize-none"></textarea>
+                        </div>
+
+                        <!-- AI Recommendation Card -->
+                        <div v-if="recommendation" class="recommendation-card">
+                            <div class="flex items-center justify-between mb-4">
+                                <h3 class="text-xl font-bold text-gray-900">🤖 AI Recommendation</h3>
+                                <div class="flex items-center space-x-2">
+                                    <span class="text-sm text-gray-700">Confidence:</span>
+                                    <div class="w-24 bg-gray-300 rounded-full h-2">
+                                        <div class="confidence-bar rounded-full h-2" 
+                                             :style="{width: (recommendation.confidence * 100) + '%'}"></div>
+                                    </div>
+                                    <span class="text-sm font-semibold text-gray-700">{{ Math.round(recommendation.confidence * 100) }}%</span>
+                                </div>
+                            </div>
+                            
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                                <div>
+                                    <h4 class="font-semibold text-gray-900 mb-2">Recommended Paradigm</h4>
+                                    <div class="bg-white bg-opacity-20 rounded-lg p-3">
+                                        <span class="font-medium text-gray-900">{{ getParadigmName(recommendation.paradigm) }}</span>
+                                    </div>
+                                </div>
+                                <div>
+                                    <h4 class="font-semibold text-gray-900 mb-2">Suggested Agents</h4>
+                                    <div class="flex flex-wrap gap-2">
+                                        <span v-for="agent in recommendation.agents" :key="agent"
+                                              class="bg-white bg-opacity-20 rounded-full px-3 py-1 text-sm text-gray-900">
+                                            {{ getAgentName(agent) }}
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="mb-4">
+                                <h4 class="font-semibold text-gray-900 mb-2">Why this recommendation?</h4>
+                                <p class="text-gray-800">{{ recommendation.justification }}</p>
+                            </div>
+                            
+                            <div class="flex items-center justify-between">
+                                <span class="text-sm text-gray-700">
+                                    Estimated duration: {{ recommendation.estimated_duration }}
+                                </span>
+                                <div class="space-x-2">
+                                    <button @click="acceptRecommendation" 
+                                            class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded transition-colors">
+                                        Accept Recommendation
+                                    </button>
+                                    <button @click="showCustomization = true" 
+                                            class="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded transition-colors">
+                                        Customize
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Manual/Custom Selection (shown when no recommendation or customizing) -->
+                        <div v-if="!recommendation || showCustomization" class="space-y-4">
+                            <div>
+                                <label class="block text-sm font-medium mb-2">Select Paradigm</label>
+                                <select v-model="selectedParadigm" class="smart-input w-full p-3 text-white">
+                                    <option v-for="paradigm in paradigms" :key="paradigm.id" :value="paradigm.id">
+                                        {{ paradigm.name }}
+                                    </option>
+                                </select>
+                            </div>
+
+                            <div>
+                                <label class="block text-sm font-medium mb-2">Select Agents</label>
+                                <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                                    <label v-for="agent in agents" :key="agent.id" class="flex items-center space-x-2 cursor-pointer">
+                                        <input type="checkbox" :value="agent.id" v-model="selectedAgents" 
+                                               class="rounded border-gray-600 bg-gray-700 text-blue-600">
+                                        <span class="text-sm">{{ agent.name }}</span>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <button @click="startCollaboration" 
+                                :disabled="isLoading || (!taskDescription.trim())"
+                                class="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 
+                                       disabled:opacity-50 disabled:cursor-not-allowed px-6 py-4 rounded-lg text-lg font-semibold transition-all">
+                            <span v-if="isLoading" class="flex items-center justify-center">
+                                <div class="loading-spinner mr-3"></div>
+                                Processing...
+                            </span>
+                            <span v-else>Start Collaboration</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Results -->
+                <div v-if="collaborationResult" class="result-container">
+                    <h3 class="text-2xl font-bold mb-4">🎯 Collaboration Result</h3>
+                    
+                    <div class="bg-white bg-opacity-10 rounded-lg p-4 mb-4">
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+                            <div><strong>Paradigm:</strong> {{ collaborationResult.paradigm }}</div>
+                            <div><strong>Task:</strong> {{ collaborationResult.task }}</div>
+                            <div><strong>Agents:</strong> {{ collaborationResult.agents.join(', ') }}</div>
+                        </div>
+                    </div>
+
+                    <!-- Dynamic result display based on paradigm -->
+                    <div v-if="collaborationResult.conductor_guidance" class="mb-6">
+                        <h4 class="text-lg font-semibold mb-2">🎼 Conductor Guidance</h4>
+                        <pre class="bg-gray-800 rounded p-4 text-sm overflow-x-auto whitespace-pre-wrap">{{ collaborationResult.conductor_guidance }}</pre>
+                    </div>
+
+                    <div v-if="collaborationResult.conversations" class="mb-6">
+                        <h4 class="text-lg font-semibold mb-2">💬 Agent Conversations</h4>
+                        <div class="space-y-3">
+                            <div v-for="conv in collaborationResult.conversations" :key="conv.turn + conv.agent" 
+                                 class="bg-gray-800 rounded p-3">
+                                <div class="flex items-center mb-2">
+                                    <span class="agent-badge text-white px-2 py-1 rounded text-xs font-semibold mr-2">
+                                        {{ conv.agent.toUpperCase() }}
+                                    </span>
+                                    <span class="text-xs text-gray-400">Turn {{ conv.turn }}</span>
+                                </div>
+                                <p class="text-sm">{{ conv.message }}</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div v-if="collaborationResult.agent_contributions" class="mb-6">
+                        <h4 class="text-lg font-semibold mb-2">🤝 Agent Contributions</h4>
+                        <div class="space-y-3">
+                            <div v-for="contrib in collaborationResult.agent_contributions" :key="contrib.agent" 
+                                 class="bg-gray-800 rounded p-4">
+                                <h5 class="font-semibold text-lg mb-2 text-blue-300">{{ contrib.agent.toUpperCase() }}</h5>
+                                <p class="text-sm">{{ contrib.contribution }}</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div v-if="collaborationResult.emergent_patterns" class="mb-6">
+                        <h4 class="text-lg font-semibold mb-2">🌟 Emergent Patterns</h4>
+                        <pre class="bg-gray-800 rounded p-4 text-sm overflow-x-auto whitespace-pre-wrap">{{ collaborationResult.emergent_patterns }}</pre>
+                    </div>
+
+                    <div v-if="collaborationResult.context_analysis" class="mb-6">
+                        <h4 class="text-lg font-semibold mb-2">🔍 Context Analysis</h4>
+                        <pre class="bg-gray-800 rounded p-4 text-sm overflow-x-auto whitespace-pre-wrap">{{ collaborationResult.context_analysis }}</pre>
+                    </div>
+
+                    <div v-if="collaborationResult.emergent_synthesis" class="mb-6">
+                        <h4 class="text-lg font-semibold mb-2">🧬 Emergent Synthesis</h4>
+                        <pre class="bg-gray-800 rounded p-4 text-sm overflow-x-auto whitespace-pre-wrap">{{ collaborationResult.emergent_synthesis }}</pre>
+                    </div>
+
+                    <!-- Feedback Section -->
+                    <div class="mt-6 pt-4 border-t border-gray-600">
+                        <h4 class="text-lg font-semibold mb-3">📝 How was this collaboration?</h4>
+                        <div class="flex items-center space-x-4">
+                            <span class="text-sm">Rate your satisfaction:</span>
+                            <div class="flex space-x-1">
+                                <button v-for="star in 5" :key="star"
+                                        @click="setFeedback(star)"
+                                        :class="{'text-yellow-400': star <= userFeedback, 'text-gray-500': star > userFeedback}"
+                                        class="text-2xl hover:text-yellow-300 transition-colors">
+                                    ★
+                                </button>
+                            </div>
+                            <button v-if="userFeedback > 0" @click="submitFeedback"
+                                    class="bg-green-600 hover:bg-green-700 px-3 py-1 rounded text-sm transition-colors">
+                                Submit Feedback
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        const { createApp } = Vue;
+
+        createApp({
+            data() {
+                return {
+                    activeTab: 'demo',
+                    taskDescription: '',
+                    selectedParadigm: 'orchestra',
+                    selectedAgents: ['gemini', 'claude'],
+                    isLoading: false,
+                    collaborationResult: null,
+                    recommendation: null,
+                    showCustomization: false,
+                    userFeedback: 0,
+                    recommendationTimeout: null,
+                    paradigms: [
+                        {
+                            id: 'orchestra',
+                            name: 'Multi-Agent CLI Orchestra',
+                            description: 'Structured orchestration with specialized AI agents working in harmony',
+                            features: ['Role-based assignment', 'Conductor coordination', 'Specialized expertise']
+                        },
+                        {
+                            id: 'mesh',
+                            name: 'Conversational Code Mesh',
+                            description: 'Natural language conversations between humans and AI agents',
+                            features: ['Natural dialogue', 'Context awareness', 'Collaborative brainstorming']
+                        },
+                        {
+                            id: 'swarm',
+                            name: 'Autonomous Code Swarm',
+                            description: 'Self-organizing AI agents with emergent behaviors',
+                            features: ['Autonomous operation', 'Emergent patterns', 'Distributed coordination']
+                        },
+                        {
+                            id: 'weaver',
+                            name: 'Contextual Code Weaver',
+                            description: 'Context-aware integration of multiple dimensions',
+                            features: ['Contextual analysis', 'Multi-dimensional integration', 'Business alignment']
+                        },
+                        {
+                            id: 'ecosystem',
+                            name: 'Emergent Code Ecosystem',
+                            description: 'Living ecosystem where code and agents co-evolve',
+                            features: ['Evolutionary adaptation', 'Ecosystem dynamics', 'Emergent solutions']
+                        }
+                    ],
+                    agents: [
+                        {
+                            id: 'gemini',
+                            name: 'Google Gemini',
+                            type: 'gemini',
+                            capabilities: ['Creative problem-solving', 'Multi-modal understanding', 'General reasoning'],
+                            status: 'available'
+                        },
+                        {
+                            id: 'claude',
+                            name: 'Anthropic Claude',
+                            type: 'claude',
+                            capabilities: ['Code analysis', 'Detailed reasoning', 'Safety-focused responses'],
+                            status: 'available'
+                        },
+                        {
+                            id: 'openai',
+                            name: 'OpenAI GPT',
+                            type: 'openai',
+                            capabilities: ['Code generation', 'Natural language', 'Versatile problem-solving'],
+                            status: 'available'
+                        },
+                        {
+                            id: 'blackbox',
+                            name: 'Blackbox AI',
+                            type: 'blackbox',
+                            capabilities: ['Code-specific tasks', 'Programming optimization', 'Development tools'],
+                            status: 'available'
+                        }
+                    ],
+                    sessions: [],
+                    newSession: {
+                        name: '',
+                        paradigm: ''
+                    }
+                }
+            },
+            methods: {
+                async onTaskInput() {
+                    // Clear previous timeout
+                    if (this.recommendationTimeout) {
+                        clearTimeout(this.recommendationTimeout);
+                    }
+                    
+                    // Reset recommendation and customization
+                    this.recommendation = null;
+                    this.showCustomization = false;
+                    
+                    // Set new timeout for recommendation
+                    if (this.taskDescription.trim().length > 10) {
+                        this.recommendationTimeout = setTimeout(() => {
+                            this.getRecommendation();
+                        }, 1000); // Wait 1 second after user stops typing
+                    }
+                },
+                
+                async getRecommendation() {
+                    if (!this.taskDescription.trim()) return;
+                    
+                    try {
+                        const response = await fetch('/api/recommend', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify({
+                                task_description: this.taskDescription,
+                                user_preferences: {}
+                            })
+                        });
+                        
+                        const data = await response.json();
+                        if (data.success) {
+                            this.recommendation = data.recommendation;
+                        }
+                    } catch (error) {
+                        console.error('Error getting recommendation:', error);
+                    }
+                },
+                
+                acceptRecommendation() {
+                    this.selectedParadigm = this.recommendation.paradigm;
+                    this.selectedAgents = [...this.recommendation.agents];
+                    this.showCustomization = false;
+                },
+                
+                getParadigmName(paradigmId) {
+                    const paradigm = this.paradigms.find(p => p.id === paradigmId);
+                    return paradigm ? paradigm.name : paradigmId;
+                },
+                
+                getAgentName(agentId) {
+                    const agent = this.agents.find(a => a.id === agentId);
+                    return agent ? agent.name : agentId;
+                },
+                
+                async startCollaboration() {
+                    if (!this.taskDescription.trim()) return;
+                    
+                    this.isLoading = true;
+                    this.collaborationResult = null;
+                    this.userFeedback = 0;
+                    
+                    try {
+                        const response = await fetch('/api/demo', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify({
+                                paradigm: this.selectedParadigm,
+                                task: this.taskDescription,
+                                agents: this.selectedAgents
+                            })
+                        });
+                        
+                        const data = await response.json();
+                        if (data.success) {
+                            this.collaborationResult = data.result;
+                        } else {
+                            alert('Error: ' + data.error);
+                        }
+                    } catch (error) {
+                        console.error('Error starting collaboration:', error);
+                        alert('Error starting collaboration');
+                    } finally {
+                        this.isLoading = false;
+                    }
+                },
+                
+                setFeedback(rating) {
+                    this.userFeedback = rating;
+                },
+                
+                async submitFeedback() {
+                    if (!this.recommendation || this.userFeedback === 0) return;
+                    
+                    try {
+                        await fetch('/api/feedback', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify({
+                                task_description: this.taskDescription,
+                                recommendation: this.recommendation,
+                                user_satisfaction: this.userFeedback / 5.0,
+                                actual_outcome: {
+                                    paradigm_used: this.selectedParadigm,
+                                    agents_used: this.selectedAgents,
+                                    task_completed: true
+                                }
+                            })
+                        });
+                        
+                        alert('Thank you for your feedback!');
+                    } catch (error) {
+                        console.error('Error submitting feedback:', error);
+                    }
+                },
+                
+                async createSession() {
+                    if (!this.newSession.name || !this.newSession.paradigm) return;
+                    
+                    try {
+                        const response = await fetch('/api/sessions', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify(this.newSession)
+                        });
+                        
+                        const data = await response.json();
+                        if (data.success) {
+                            this.sessions.unshift(data.session);
+                            this.newSession = { name: '', paradigm: '' };
+                        }
+                    } catch (error) {
+                        console.error('Error creating session:', error);
+                    }
+                },
+                
+                async loadSessions() {
+                    try {
+                        const response = await fetch('/api/sessions');
+                        const data = await response.json();
+                        if (Array.isArray(data)) {
+                            this.sessions = data;
+                        }
+                    } catch (error) {
+                        console.error('Error loading sessions:', error);
+                    }
+                },
+                
+                loadSession(session) {
+                    this.selectedParadigm = session.paradigm;
+                    this.activeTab = 'demo';
+                }
+            },
+            
+            mounted() {
+                this.loadSessions();
+                
+                // Set default task for demo
+                this.taskDescription = 'Create a Python function that calculates the Fibonacci sequence using dynamic programming';
+            }
+        }).mount('#app');
+    </script>
+</body>
+</html>
+                        Collaborative Coding Platform
+                    </h1>
+                    <div class="flex space-x-4">
+                        <button @click="activeTab = 'paradigms'" 
+                                :class="activeTab === 'paradigms' ? 'bg-blue-600' : 'bg-gray-600'"
+                                class="px-4 py-2 rounded-lg transition-colors">
+                            Paradigms
+                        </button>
+                        <button @click="activeTab = 'sessions'" 
+                                :class="activeTab === 'sessions' ? 'bg-blue-600' : 'bg-gray-600'"
+                                class="px-4 py-2 rounded-lg transition-colors">
+                            Sessions
+                        </button>
+                        <button @click="activeTab = 'demo'" 
+                                :class="activeTab === 'demo' ? 'bg-blue-600' : 'bg-gray-600'"
+                                class="px-4 py-2 rounded-lg transition-colors">
+                            Live Demo
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="container mx-auto px-6 py-8">
+            <!-- Paradigms Tab -->
+            <div v-if="activeTab === 'paradigms'" class="space-y-8">
+                <div class="text-center mb-12">
+                    <h2 class="text-4xl font-bold mb-4">Five Revolutionary Paradigms</h2>
+                    <p class="text-xl text-gray-300 max-w-3xl mx-auto">
+                        Explore different approaches to collaborative coding with AI agents through command-line interfaces
+                    </p>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                    <div v-for="paradigm in paradigms" :key="paradigm.id" 
+                         class="paradigm-card rounded-xl p-6 text-white cursor-pointer"
+                         @click="selectParadigm(paradigm)">
+                        <h3 class="text-xl font-bold mb-3">{{ paradigm.name }}</h3>
+                        <p class="text-sm opacity-90 mb-4">{{ paradigm.description }}</p>
+                        <div class="space-y-2">
+                            <div v-for="feature in paradigm.features" :key="feature" 
+                                 class="text-xs bg-white bg-opacity-20 rounded-full px-3 py-1 inline-block mr-2">
+                                {{ feature }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sessions Tab -->
+            <div v-if="activeTab === 'sessions'" class="space-y-8">
+                <div class="flex justify-between items-center">
+                    <h2 class="text-3xl font-bold">Collaboration Sessions</h2>
+                    <button @click="showCreateSession = true" 
+                            class="bg-green-600 hover:bg-green-700 px-6 py-3 rounded-lg transition-colors">
+                        Create New Session
+                    </button>
+                </div>
+
+                <!-- Create Session Modal -->
+                <div v-if="showCreateSession" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                    <div class="bg-gray-800 rounded-xl p-8 max-w-md w-full mx-4">
+                        <h3 class="text-2xl font-bold mb-6">Create New Session</h3>
+                        <form @submit.prevent="createSession">
+                            <div class="mb-4">
+                                <label class="block text-sm font-medium mb-2">Session Name</label>
+                                <input v-model="newSession.name" type="text" 
+                                       class="w-full px-3 py-2 bg-gray-700 rounded-lg border border-gray-600 focus:border-blue-500 focus:outline-none"
+                                       placeholder="Enter session name">
+                            </div>
+                            <div class="mb-4">
+                                <label class="block text-sm font-medium mb-2">Paradigm</label>
+                                <select v-model="newSession.paradigm" 
+                                        class="w-full px-3 py-2 bg-gray-700 rounded-lg border border-gray-600 focus:border-blue-500 focus:outline-none">
+                                    <option v-for="paradigm in paradigms" :key="paradigm.id" :value="paradigm.id">
+                                        {{ paradigm.name }}
+                                    </option>
+                                </select>
+                            </div>
+                            <div class="mb-6">
+                                <label class="block text-sm font-medium mb-2">Select Agents</label>
+                                <div class="space-y-2">
+                                    <label v-for="agent in agents" :key="agent.id" class="flex items-center">
+                                        <input type="checkbox" :value="agent.id" v-model="newSession.agents"
+                                               class="mr-2 rounded">
+                                        <span class="agent-badge text-white px-3 py-1 rounded-full text-sm">
+                                            {{ agent.name }}
+                                        </span>
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="flex space-x-4">
+                                <button type="submit" class="flex-1 bg-blue-600 hover:bg-blue-700 py-2 rounded-lg transition-colors">
+                                    Create Session
+                                </button>
+                                <button type="button" @click="showCreateSession = false" 
+                                        class="flex-1 bg-gray-600 hover:bg-gray-700 py-2 rounded-lg transition-colors">
+                                    Cancel
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Sessions List -->
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <div v-for="session in sessions" :key="session.id" 
+                         class="bg-gray-800 rounded-xl p-6 hover:bg-gray-700 transition-colors cursor-pointer"
+                         @click="selectSession(session)">
+                        <h3 class="text-xl font-bold mb-2">{{ session.name }}</h3>
+                        <p class="text-gray-400 mb-2">{{ session.paradigm }}</p>
+                        <p class="text-sm text-gray-500">Created: {{ formatDate(session.created_at) }}</p>
+                        <div class="mt-4">
+                            <span :class="session.status === 'active' ? 'bg-green-600' : 'bg-gray-600'" 
+                                  class="px-3 py-1 rounded-full text-xs">
+                                {{ session.status }}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Demo Tab -->
+            <div v-if="activeTab === 'demo'" class="space-y-8">
+                <div class="text-center mb-8">
+                    <h2 class="text-3xl font-bold mb-4">Live Collaboration Demo</h2>
+                    <p class="text-gray-300">Experience the power of collaborative AI coding in real-time</p>
+                </div>
+
+                <div class="bg-gray-800 rounded-xl p-8">
+                    <form @submit.prevent="runDemo" class="space-y-6">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <label class="block text-sm font-medium mb-2">Select Paradigm</label>
+                                <select v-model="demo.paradigm" 
+                                        class="w-full px-3 py-2 bg-gray-700 rounded-lg border border-gray-600 focus:border-blue-500 focus:outline-none">
+                                    <option v-for="paradigm in paradigms" :key="paradigm.id" :value="paradigm.id">
+                                        {{ paradigm.name }}
+                                    </option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium mb-2">Select Agents</label>
+                                <div class="flex flex-wrap gap-2">
+                                    <label v-for="agent in agents" :key="agent.id" class="flex items-center">
+                                        <input type="checkbox" :value="agent.id" v-model="demo.agents"
+                                               class="mr-1 rounded">
+                                        <span class="text-sm">{{ agent.name }}</span>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium mb-2">Task Description</label>
+                            <textarea v-model="demo.task" 
+                                      class="w-full px-3 py-2 bg-gray-700 rounded-lg border border-gray-600 focus:border-blue-500 focus:outline-none h-32"
+                                      placeholder="Describe the coding task you want the AI agents to collaborate on..."></textarea>
+                        </div>
+
+                        <button type="submit" :disabled="loading" 
+                                class="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 py-3 rounded-lg transition-colors disabled:opacity-50">
+                            <span v-if="loading" class="flex items-center justify-center">
+                                <div class="loading-spinner mr-2"></div>
+                                Collaborating...
+                            </span>
+                            <span v-else>Start Collaboration</span>
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Results -->
+                <div v-if="demoResult" class="result-container text-white">
+                    <h3 class="text-2xl font-bold mb-4">Collaboration Result</h3>
+                    <div class="bg-black bg-opacity-30 rounded-lg p-4 mb-4">
+                        <p><strong>Paradigm:</strong> {{ demoResult.paradigm }}</p>
+                        <p><strong>Task:</strong> {{ demoResult.task }}</p>
+                        <p><strong>Agents:</strong> {{ demoResult.agents.join(', ') }}</p>
+                    </div>
+                    
+                    <div class="space-y-4">
+                        <div v-if="demoResult.result.conductor_guidance" class="bg-black bg-opacity-30 rounded-lg p-4">
+                            <h4 class="font-bold mb-2">🎼 Conductor Guidance</h4>
+                            <pre class="whitespace-pre-wrap text-sm">{{ demoResult.result.conductor_guidance }}</pre>
+                        </div>
+                        
+                        <div v-if="demoResult.result.agent_contributions" class="space-y-3">
+                            <h4 class="font-bold">🤖 Agent Contributions</h4>
+                            <div v-for="contribution in demoResult.result.agent_contributions" :key="contribution.agent"
+                                 class="bg-black bg-opacity-30 rounded-lg p-4">
+                                <h5 class="font-semibold mb-2">{{ contribution.agent.toUpperCase() }}</h5>
+                                <pre class="whitespace-pre-wrap text-sm">{{ contribution.contribution }}</pre>
+                            </div>
+                        </div>
+                        
+                        <div v-if="demoResult.result.conversations" class="space-y-3">
+                            <h4 class="font-bold">💬 Conversations</h4>
+                            <div v-for="conv in demoResult.result.conversations" :key="conv.turn + conv.agent"
+                                 class="bg-black bg-opacity-30 rounded-lg p-4">
+                                <h5 class="font-semibold mb-2">Turn {{ conv.turn }} - {{ conv.agent.toUpperCase() }}</h5>
+                                <pre class="whitespace-pre-wrap text-sm">{{ conv.message }}</pre>
+                            </div>
+                        </div>
+                        
+                        <div v-if="demoResult.result.emergent_patterns" class="bg-black bg-opacity-30 rounded-lg p-4">
+                            <h4 class="font-bold mb-2">🌟 Emergent Patterns</h4>
+                            <pre class="whitespace-pre-wrap text-sm">{{ demoResult.result.emergent_patterns }}</pre>
+                        </div>
+                        
+                        <div v-if="demoResult.result.context_analysis" class="bg-black bg-opacity-30 rounded-lg p-4">
+                            <h4 class="font-bold mb-2">🧠 Context Analysis</h4>
+                            <pre class="whitespace-pre-wrap text-sm">{{ demoResult.result.context_analysis }}</pre>
+                        </div>
+                        
+                        <div v-if="demoResult.result.emergent_synthesis" class="bg-black bg-opacity-30 rounded-lg p-4">
+                            <h4 class="font-bold mb-2">🌱 Emergent Synthesis</h4>
+                            <pre class="whitespace-pre-wrap text-sm">{{ demoResult.result.emergent_synthesis }}</pre>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        const { createApp } = Vue;
+
+        createApp({
+            data() {
+                return {
+                    activeTab: 'paradigms',
+                    paradigms: [],
+                    agents: [],
+                    sessions: [],
+                    showCreateSession: false,
+                    loading: false,
+                    newSession: {
+                        name: '',
+                        paradigm: 'orchestra',
+                        agents: []
+                    },
+                    demo: {
+                        paradigm: 'orchestra',
+                        agents: ['gemini', 'claude'],
+                        task: 'Create a Python function that calculates the Fibonacci sequence using dynamic programming'
+                    },
+                    demoResult: null
+                }
+            },
+            async mounted() {
+                await this.loadParadigms();
+                await this.loadAgents();
+                await this.loadSessions();
+            },
+            methods: {
+                async loadParadigms() {
+                    try {
+                        const response = await fetch('/api/paradigms');
+                        this.paradigms = await response.json();
+                    } catch (error) {
+                        console.error('Error loading paradigms:', error);
+                    }
+                },
+                async loadAgents() {
+                    try {
+                        const response = await fetch('/api/agents');
+                        this.agents = await response.json();
+                    } catch (error) {
+                        console.error('Error loading agents:', error);
+                    }
+                },
+                async loadSessions() {
+                    try {
+                        const response = await fetch('/api/sessions');
+                        this.sessions = await response.json();
+                    } catch (error) {
+                        console.error('Error loading sessions:', error);
+                    }
+                },
+                selectParadigm(paradigm) {
+                    this.demo.paradigm = paradigm.id;
+                    this.activeTab = 'demo';
+                },
+                async createSession() {
+                    try {
+                        const response = await fetch('/api/sessions', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify(this.newSession)
+                        });
+                        const result = await response.json();
+                        if (result.success) {
+                            this.showCreateSession = false;
+                            this.newSession = { name: '', paradigm: 'orchestra', agents: [] };
+                            await this.loadSessions();
+                        }
+                    } catch (error) {
+                        console.error('Error creating session:', error);
+                    }
+                },
+                selectSession(session) {
+                    // Navigate to session details
+                    console.log('Selected session:', session);
+                },
+                async runDemo() {
+                    this.loading = true;
+                    this.demoResult = null;
+                    
+                    try {
+                        const response = await fetch('/api/demo', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify(this.demo)
+                        });
+                        this.demoResult = await response.json();
+                    } catch (error) {
+                        console.error('Error running demo:', error);
+                    } finally {
+                        this.loading = false;
+                    }
+                },
+                formatDate(dateString) {
+                    return new Date(dateString).toLocaleDateString();
+                }
+            }
+        }).mount('#app');
+    </script>
+</body>
+</html>
+
