@@ -88,17 +88,34 @@ docker run -p 80:80 ghcr.io/asshat1981ar/autonomous-sdlc-agent/frontend:latest
 - **Secrets Management**: Kubernetes secrets integration
 - **Multi-Environment**: Development, staging, production configs
 
-## 🔧 Configuration
+## 🔧 Bridge Services Configuration
 
-### Required Environment Variables
+### Premium AI Service Integration
+
+This platform now integrates with your premium AI subscriptions through bridge services:
 
 ```bash
-# AI Provider API Keys (add to GitHub Secrets or Kubernetes Secrets)
+# Claude Code Bridge - Uses your existing Claude subscription
+# No additional setup needed!
+
+# Gemini CLI Bridge (optional enhancement)
 GEMINI_API_KEY=your-gemini-key
-ANTHROPIC_API_KEY=your-claude-key
-OPENAI_API_KEY=your-openai-key
-BLACKBOX_API_KEY=your-blackbox-key
+
+# GitHub Codex Bridge (uses your GitHub Copilot subscription)
+GITHUB_TOKEN=your-github-personal-access-token
+GITHUB_COPILOT_TOKEN=your-copilot-token
+
+# Blackbox.ai Premium Bridge
+BLACKBOX_API_KEY=your-blackbox-api-key
+BLACKBOX_PREMIUM_KEY=your-premium-key
 ```
+
+### Bridge Services Features
+
+🌉 **Claude Code Bridge**: Your existing subscription's advanced features
+🚀 **Gemini CLI Bridge**: Google's latest AI via NPX integration  
+🐙 **GitHub Codex Bridge**: GitHub Copilot integration
+⚫ **Blackbox.ai Bridge**: Premium analysis and optimization
 
 ### Optional Configuration
 
@@ -123,12 +140,19 @@ curl http://localhost:5000/api/health
 
 # Frontend health
 curl http://localhost/health
+
+# Bridge services health
+curl http://localhost:5000/api/bridges/health
+
+# Bridge status
+curl http://localhost:5000/api/bridges/status
 ```
 
-### Metrics
+### Enhanced Metrics
 
 - **Application Performance**: Request latency, throughput
 - **AI Collaboration**: Success rates, paradigm usage
+- **Bridge Services**: Health, response times, success rates
 - **Infrastructure**: CPU, memory, network usage
 - **Business Metrics**: User sessions, project completions
 
@@ -136,7 +160,7 @@ curl http://localhost/health
 
 1. **Create GitHub Repository** (Manual step)
 2. **Push Code** (Commands above)
-3. **Configure API Keys** (GitHub Secrets or Kubernetes Secrets)
+3. **Configure Bridge Services** (See BRIDGE_SERVICES_SETUP.md)
 4. **Deploy to Kubernetes** (Optional - see DEPLOYMENT.md)
 5. **Set Up Monitoring** (Prometheus + Grafana)
 
@@ -144,8 +168,9 @@ curl http://localhost/health
 
 - **GitHub Issues**: [Report bugs](https://github.com/asshat1981ar/autonomous-sdlc-agent/issues)
 - **Documentation**: [Full deployment guide](DEPLOYMENT.md)
+- **Bridge Services**: [Setup guide](BRIDGE_SERVICES_SETUP.md)
 - **Kubernetes Guide**: [Advanced deployment](DEPLOYMENT.md#kubernetes-deployment)
 
 ---
 
-**🎉 Your autonomous SDLC platform is ready to revolutionize software development!**
+**🌉 Your autonomous SDLC platform with premium AI bridge services is ready to revolutionize software development!**

@@ -1,6 +1,18 @@
 import json
+import asyncio
+import logging
 from typing import Dict, List, Optional, Any
 from datetime import datetime
+
+# Import bridge services
+try:
+    from .bridges.bridge_manager import bridge_manager, TaskType, BridgeType
+    BRIDGES_AVAILABLE = True
+except ImportError:
+    BRIDGES_AVAILABLE = False
+    logging.warning("Bridge services not available")
+
+logger = logging.getLogger(__name__)
 
 class AIProvider:
     def __init__(self, provider_type: str, api_key: str = None):
@@ -26,16 +38,36 @@ class AgentOrchestrator:
             'blackbox': AIProvider('blackbox')
         }
         self.active_sessions = {}
+        self.bridge_initialized = False
+    
+    async def initialize_bridges(self) -> Dict[str, Any]:
+        """Initialize bridge services if available"""
+        if not BRIDGES_AVAILABLE:
+            return {'success': False, 'error': 'Bridge services not available'}
+            
+        try:
+            result = await bridge_manager.initialize()
+            self.bridge_initialized = True
+            logger.info("Bridge services initialized successfully")
+            return {'success': True, 'bridges': result}
+        except Exception as e:
+            logger.error(f"Failed to initialize bridge services: {e}")
+            return {'success': False, 'error': str(e)}
     
     async def collaborate(self, session_id: str, paradigm: str, task: str, agents: List[str]) -> Dict:
         """Main collaboration method that routes to specific paradigm implementations"""
+        
+        # Initialize bridges if not done yet
+        if BRIDGES_AVAILABLE and not self.bridge_initialized:
+            await self.initialize_bridges()
         
         # Store session info
         self.active_sessions[session_id] = {
             'paradigm': paradigm,
             'task': task,
             'agents': agents,
-            'created_at': datetime.now().isoformat()
+            'created_at': datetime.now().isoformat(),
+            'bridge_enhanced': BRIDGES_AVAILABLE and self.bridge_initialized
         }
         
         # Route to specific paradigm
@@ -277,6 +309,165 @@ The ecosystem has evolved beyond individual agent capabilities to create a livin
             'emergent_synthesis': emergent_synthesis,
             'status': 'completed',
             'timestamp': datetime.now().isoformat()
+        }
+
+    # Bridge-powered enhanced methods
+    async def generate_code_with_bridges(self, prompt: str, language: str = "python", 
+                                       paradigm: str = "orchestra") -> Dict[str, Any]:
+        """Generate code using bridge services with multi-agent collaboration"""
+        if not (BRIDGES_AVAILABLE and self.bridge_initialized):
+            return await self._fallback_code_generation(prompt, language)
+        
+        try:
+            # Use bridge manager for enhanced code generation
+            result = await bridge_manager.execute_task(
+                TaskType.CODE_GENERATION,
+                prompt=prompt,
+                language=language
+            )
+            
+            # Enhance with paradigm-specific collaboration
+            if paradigm == "orchestra":
+                # Get multiple perspectives
+                multi_result = await bridge_manager.execute_multi_bridge_task(
+                    TaskType.CODE_GENERATION,
+                    [BridgeType.CLAUDE_CODE, BridgeType.GEMINI_CLI, BridgeType.BLACKBOX_AI],
+                    prompt=prompt,
+                    language=language
+                )
+                result['collaboration'] = multi_result
+            
+            result['enhanced_by_bridges'] = True
+            result['paradigm'] = paradigm
+            return result
+            
+        except Exception as e:
+            logger.error(f"Bridge code generation failed: {e}")
+            return await self._fallback_code_generation(prompt, language)
+    
+    async def analyze_code_with_bridges(self, code: str, language: str = "python") -> Dict[str, Any]:
+        """Analyze code using bridge services"""
+        if not (BRIDGES_AVAILABLE and self.bridge_initialized):
+            return self._fallback_code_analysis(code, language)
+        
+        try:
+            # Get comprehensive analysis from best bridge
+            result = await bridge_manager.execute_task(
+                TaskType.CODE_ANALYSIS,
+                code=code,
+                language=language
+            )
+            
+            # Get additional perspectives from other bridges
+            multi_result = await bridge_manager.execute_multi_bridge_task(
+                TaskType.CODE_ANALYSIS,
+                [BridgeType.CLAUDE_CODE, BridgeType.BLACKBOX_AI],
+                code=code,
+                language=language
+            )
+            
+            result['multi_bridge_analysis'] = multi_result
+            result['enhanced_by_bridges'] = True
+            return result
+            
+        except Exception as e:
+            logger.error(f"Bridge code analysis failed: {e}")
+            return self._fallback_code_analysis(code, language)
+    
+    async def optimize_code_with_bridges(self, code: str, language: str = "python") -> Dict[str, Any]:
+        """Optimize code using bridge services"""
+        if not (BRIDGES_AVAILABLE and self.bridge_initialized):
+            return self._fallback_code_optimization(code, language)
+        
+        try:
+            result = await bridge_manager.execute_task(
+                TaskType.CODE_OPTIMIZATION,
+                code=code,
+                language=language
+            )
+            
+            result['enhanced_by_bridges'] = True
+            return result
+            
+        except Exception as e:
+            logger.error(f"Bridge code optimization failed: {e}")
+            return self._fallback_code_optimization(code, language)
+    
+    async def debug_code_with_bridges(self, code: str, error_message: str, 
+                                    language: str = "python") -> Dict[str, Any]:
+        """Debug code using bridge services"""
+        if not (BRIDGES_AVAILABLE and self.bridge_initialized):
+            return self._fallback_code_debugging(code, error_message, language)
+        
+        try:
+            result = await bridge_manager.execute_task(
+                TaskType.CODE_DEBUGGING,
+                code=code,
+                error_message=error_message,
+                language=language
+            )
+            
+            result['enhanced_by_bridges'] = True
+            return result
+            
+        except Exception as e:
+            logger.error(f"Bridge code debugging failed: {e}")
+            return self._fallback_code_debugging(code, error_message, language)
+    
+    async def get_bridge_status(self) -> Dict[str, Any]:
+        """Get status of all bridge services"""
+        if not BRIDGES_AVAILABLE:
+            return {'available': False, 'error': 'Bridge services not installed'}
+        
+        try:
+            return await bridge_manager.get_bridge_status()
+        except Exception as e:
+            return {'available': False, 'error': str(e)}
+    
+    # Fallback methods when bridges are not available
+    async def _fallback_code_generation(self, prompt: str, language: str) -> Dict[str, Any]:
+        """Fallback code generation without bridges"""
+        return {
+            'success': True,
+            'code': f'# Generated {language} code for: {prompt}\n# This is a mock implementation\npass',
+            'explanation': f'Mock code generation for: {prompt}',
+            'enhanced_by_bridges': False,
+            'fallback': True
+        }
+    
+    def _fallback_code_analysis(self, code: str, language: str) -> Dict[str, Any]:
+        """Fallback code analysis without bridges"""
+        lines = code.split('\n')
+        return {
+            'success': True,
+            'analysis': {
+                'lines_of_code': len(lines),
+                'language': language,
+                'complexity': 'medium'
+            },
+            'enhanced_by_bridges': False,
+            'fallback': True
+        }
+    
+    def _fallback_code_optimization(self, code: str, language: str) -> Dict[str, Any]:
+        """Fallback code optimization without bridges"""
+        return {
+            'success': True,
+            'original_code': code,
+            'optimized_code': code + '\n# Optimized version would go here',
+            'improvements': ['Mock optimization applied'],
+            'enhanced_by_bridges': False,
+            'fallback': True
+        }
+    
+    def _fallback_code_debugging(self, code: str, error_message: str, language: str) -> Dict[str, Any]:
+        """Fallback code debugging without bridges"""
+        return {
+            'success': True,
+            'diagnosis': f'Mock diagnosis for error: {error_message}',
+            'fixes': ['Mock fix suggestion'],
+            'enhanced_by_bridges': False,
+            'fallback': True
         }
 
 # Global orchestrator instance
