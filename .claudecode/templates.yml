@@ -1,0 +1,1097 @@
+# Claude Code Advanced Templates Configuration
+# Autonomous SDLC Agent - Intelligent Code Templates and Patterns
+
+templates:
+  # === A2A FRAMEWORK TEMPLATES ===
+  
+  autonomous_agent_template:
+    name: "Autonomous Agent Implementation"
+    description: "Template for creating autonomous AI agents with A2A capabilities"
+    language: "python"
+    framework: "asyncio"
+    
+    template: |
+      """
+      Autonomous AI Agent Implementation
+      Advanced A2A communication and autonomous capabilities
+      """
+      
+      import asyncio
+      import logging
+      from typing import Dict, List, Any, Optional
+      from dataclasses import dataclass
+      from abc import ABC, abstractmethod
+      
+      from src.models.agent_base import BaseAgent
+      from src.services.a2a_communication import A2AMessageBus
+      from src.services.knowledge_base import KnowledgeBase
+      from src.utils.performance_monitor import PerformanceMonitor
+      
+      @dataclass
+      class AgentCapability:
+          """Defines agent capabilities and expertise areas"""
+          name: str
+          proficiency_level: float  # 0.0 to 1.0
+          specializations: List[str]
+          learning_rate: float = 0.1
+          
+      class AutonomousAgent(BaseAgent):
+          """
+          Advanced autonomous agent with self-learning and A2A communication
+          
+          Features:
+          - Autonomous decision making
+          - Real-time learning and adaptation
+          - A2A collaboration protocols
+          - Performance optimization
+          - Knowledge sharing capabilities
+          """
+          
+          def __init__(
+              self,
+              agent_id: str,
+              name: str,
+              capabilities: List[AgentCapability],
+              model_config: Dict[str, Any],
+              **kwargs
+          ):
+              super().__init__(agent_id, name, **kwargs)
+              self.capabilities = {cap.name: cap for cap in capabilities}
+              self.model_config = model_config
+              self.knowledge_base = KnowledgeBase(agent_id)
+              self.message_bus = A2AMessageBus()
+              self.performance_monitor = PerformanceMonitor()
+              self.learning_enabled = True
+              self.collaboration_active = True
+              
+          async def initialize(self) -> None:
+              """Initialize agent with autonomous capabilities"""
+              await super().initialize()
+              await self.knowledge_base.initialize()
+              await self.message_bus.register_agent(self)
+              await self._setup_autonomous_features()
+              
+          async def process_task(self, task: Dict[str, Any]) -> Dict[str, Any]:
+              """
+              Process task with autonomous decision making and learning
+              
+              Args:
+                  task: Task specification with requirements and context
+                  
+              Returns:
+                  Task result with performance metrics and learning insights
+              """
+              async with self.performance_monitor.track_task(task['id']):
+                  # Analyze task complexity and select optimal approach
+                  approach = await self._analyze_and_select_approach(task)
+                  
+                  # Execute task with real-time adaptation
+                  result = await self._execute_with_adaptation(task, approach)
+                  
+                  # Learn from execution and update capabilities
+                  await self._learn_from_execution(task, result)
+                  
+                  # Share knowledge with other agents
+                  await self._share_knowledge(task, result)
+                  
+                  return result
+                  
+          async def collaborate_with_agents(
+              self, 
+              collaboration_request: Dict[str, Any]
+          ) -> Dict[str, Any]:
+              """
+              Initiate or participate in multi-agent collaboration
+              
+              Args:
+                  collaboration_request: Collaboration specification and requirements
+                  
+              Returns:
+                  Collaboration result with contribution details
+              """
+              # Form collaboration team based on capabilities
+              team = await self._form_collaboration_team(collaboration_request)
+              
+              # Coordinate collaborative task execution
+              result = await self._coordinate_collaboration(team, collaboration_request)
+              
+              # Aggregate and synthesize results
+              final_result = await self._synthesize_collaboration_results(result)
+              
+              return final_result
+              
+          async def _analyze_and_select_approach(self, task: Dict[str, Any]) -> str:
+              """Analyze task and select optimal approach using AI reasoning"""
+              # Implementation with Claude/AI integration
+              pass
+              
+          async def _execute_with_adaptation(
+              self, 
+              task: Dict[str, Any], 
+              approach: str
+          ) -> Dict[str, Any]:
+              """Execute task with real-time adaptation and optimization"""
+              # Implementation with adaptive execution
+              pass
+              
+          async def _learn_from_execution(
+              self, 
+              task: Dict[str, Any], 
+              result: Dict[str, Any]
+          ) -> None:
+              """Learn from task execution and update agent capabilities"""
+              if not self.learning_enabled:
+                  return
+                  
+              # Extract learning insights
+              insights = await self._extract_learning_insights(task, result)
+              
+              # Update capabilities based on performance
+              await self._update_capabilities(insights)
+              
+              # Store knowledge for future use
+              await self.knowledge_base.store_experience(task, result, insights)
+              
+          async def _share_knowledge(
+              self, 
+              task: Dict[str, Any], 
+              result: Dict[str, Any]
+          ) -> None:
+              """Share knowledge and insights with other agents"""
+              if not self.collaboration_active:
+                  return
+                  
+              knowledge_package = {
+                  'agent_id': self.agent_id,
+                  'task_type': task['type'],
+                  'approach_used': result.get('approach'),
+                  'performance_metrics': result.get('metrics'),
+                  'insights': result.get('insights'),
+                  'recommendations': result.get('recommendations')
+              }
+              
+              await self.message_bus.broadcast_knowledge(knowledge_package)
+              
+      # Example usage and configuration
+      async def create_autonomous_agent_example():
+          """Example of creating and configuring an autonomous agent"""
+          
+          capabilities = [
+              AgentCapability(
+                  name="code_generation",
+                  proficiency_level=0.9,
+                  specializations=["python", "typescript", "architecture"],
+                  learning_rate=0.1
+              ),
+              AgentCapability(
+                  name="system_design",
+                  proficiency_level=0.95,
+                  specializations=["microservices", "scalability", "security"],
+                  learning_rate=0.05
+              )
+          ]
+          
+          model_config = {
+              "model": "claude-3-5-sonnet",
+              "temperature": 0.1,
+              "max_tokens": 8192
+          }
+          
+          agent = AutonomousAgent(
+              agent_id="claude_architect_001",
+              name="Claude System Architect",
+              capabilities=capabilities,
+              model_config=model_config
+          )
+          
+          await agent.initialize()
+          return agent
+    
+    variables:
+      - name: "agent_name"
+        description: "Name of the autonomous agent"
+        type: "string"
+        default: "AutonomousAgent"
+      - name: "capabilities"
+        description: "List of agent capabilities"
+        type: "array"
+        default: ["code_generation", "system_design"]
+      - name: "model_provider"
+        description: "AI model provider"
+        type: "string"
+        options: ["claude", "openai", "gemini", "blackbox"]
+        default: "claude"
+
+  a2a_communication_template:
+    name: "A2A Communication Protocol"
+    description: "Template for implementing A2A communication between agents"
+    language: "python"
+    
+    template: |
+      """
+      Agent-to-Agent Communication Protocol Implementation
+      Real-time communication and collaboration between autonomous agents
+      """
+      
+      import asyncio
+      import json
+      from typing import Dict, List, Any, Callable, Optional
+      from dataclasses import dataclass, asdict
+      from enum import Enum
+      import uuid
+      from datetime import datetime
+      
+      class MessageType(Enum):
+          """A2A Message types for different communication scenarios"""
+          TASK_REQUEST = "task_request"
+          TASK_RESPONSE = "task_response"
+          COLLABORATION_INVITE = "collaboration_invite"
+          KNOWLEDGE_SHARE = "knowledge_share"
+          STATUS_UPDATE = "status_update"
+          ERROR_REPORT = "error_report"
+          PERFORMANCE_METRIC = "performance_metric"
+          LEARNING_INSIGHT = "learning_insight"
+          
+      @dataclass
+      class A2AMessage:
+          """Standardized A2A message format"""
+          message_id: str
+          sender_id: str
+          recipient_id: str  # or "broadcast" for all agents
+          message_type: MessageType
+          payload: Dict[str, Any]
+          timestamp: datetime
+          priority: int = 5  # 1-10, 10 being highest priority
+          requires_response: bool = False
+          correlation_id: Optional[str] = None
+          
+      class A2AMessageBus:
+          """
+          Advanced message bus for A2A communication
+          
+          Features:
+          - Real-time message routing
+          - Priority-based delivery
+          - Message persistence and replay
+          - Broadcast and unicast messaging
+          - Response correlation
+          """
+          
+          def __init__(self):
+              self.agents: Dict[str, 'BaseAgent'] = {}
+              self.message_handlers: Dict[str, Dict[MessageType, Callable]] = {}
+              self.message_history: List[A2AMessage] = []
+              self.active_collaborations: Dict[str, Dict[str, Any]] = {}
+              
+          async def register_agent(self, agent: 'BaseAgent') -> None:
+              """Register agent with the message bus"""
+              self.agents[agent.agent_id] = agent
+              self.message_handlers[agent.agent_id] = {}
+              
+              # Setup default message handlers
+              await self._setup_default_handlers(agent)
+              
+          async def send_message(self, message: A2AMessage) -> None:
+              """Send message to target agent(s)"""
+              self.message_history.append(message)
+              
+              if message.recipient_id == "broadcast":
+                  await self._broadcast_message(message)
+              else:
+                  await self._send_unicast_message(message)
+                  
+          async def request_collaboration(
+              self,
+              initiator_id: str,
+              target_agents: List[str],
+              collaboration_spec: Dict[str, Any]
+          ) -> str:
+              """Initiate multi-agent collaboration"""
+              collaboration_id = str(uuid.uuid4())
+              
+              self.active_collaborations[collaboration_id] = {
+                  'initiator': initiator_id,
+                  'participants': target_agents,
+                  'spec': collaboration_spec,
+                  'status': 'pending',
+                  'created_at': datetime.utcnow()
+              }
+              
+              # Send collaboration invites
+              for agent_id in target_agents:
+                  invite_message = A2AMessage(
+                      message_id=str(uuid.uuid4()),
+                      sender_id=initiator_id,
+                      recipient_id=agent_id,
+                      message_type=MessageType.COLLABORATION_INVITE,
+                      payload={
+                          'collaboration_id': collaboration_id,
+                          'spec': collaboration_spec,
+                          'participants': target_agents
+                      },
+                      timestamp=datetime.utcnow(),
+                      requires_response=True
+                  )
+                  await self.send_message(invite_message)
+                  
+              return collaboration_id
+              
+          async def broadcast_knowledge(self, knowledge_package: Dict[str, Any]) -> None:
+              """Broadcast knowledge to all agents"""
+              message = A2AMessage(
+                  message_id=str(uuid.uuid4()),
+                  sender_id=knowledge_package['agent_id'],
+                  recipient_id="broadcast",
+                  message_type=MessageType.KNOWLEDGE_SHARE,
+                  payload=knowledge_package,
+                  timestamp=datetime.utcnow()
+              )
+              await self.send_message(message)
+              
+          async def _broadcast_message(self, message: A2AMessage) -> None:
+              """Broadcast message to all registered agents"""
+              tasks = []
+              for agent_id, agent in self.agents.items():
+                  if agent_id != message.sender_id:  # Don't send to sender
+                      tasks.append(self._deliver_message_to_agent(agent, message))
+              
+              await asyncio.gather(*tasks, return_exceptions=True)
+              
+          async def _send_unicast_message(self, message: A2AMessage) -> None:
+              """Send message to specific agent"""
+              if message.recipient_id in self.agents:
+                  agent = self.agents[message.recipient_id]
+                  await self._deliver_message_to_agent(agent, message)
+                  
+          async def _deliver_message_to_agent(
+              self, 
+              agent: 'BaseAgent', 
+              message: A2AMessage
+          ) -> None:
+              """Deliver message to specific agent"""
+              try:
+                  handlers = self.message_handlers.get(agent.agent_id, {})
+                  handler = handlers.get(message.message_type)
+                  
+                  if handler:
+                      await handler(message)
+                  else:
+                      await agent.handle_a2a_message(message)
+                      
+              except Exception as e:
+                  # Log error and send error report
+                  error_message = A2AMessage(
+                      message_id=str(uuid.uuid4()),
+                      sender_id="message_bus",
+                      recipient_id=message.sender_id,
+                      message_type=MessageType.ERROR_REPORT,
+                      payload={
+                          'original_message_id': message.message_id,
+                          'error': str(e),
+                          'target_agent': agent.agent_id
+                      },
+                      timestamp=datetime.utcnow()
+                  )
+                  await self.send_message(error_message)
+      
+      # Example A2A collaboration workflow
+      async def example_a2a_collaboration():
+          """Example of A2A collaboration between multiple agents"""
+          
+          # Initialize message bus
+          message_bus = A2AMessageBus()
+          
+          # Create and register agents
+          architect_agent = await create_autonomous_agent_example()
+          developer_agent = await create_developer_agent()
+          qa_agent = await create_qa_agent()
+          
+          await message_bus.register_agent(architect_agent)
+          await message_bus.register_agent(developer_agent)
+          await message_bus.register_agent(qa_agent)
+          
+          # Initiate collaboration for complex feature development
+          collaboration_spec = {
+              'project': 'advanced_search_feature',
+              'requirements': {
+                  'performance': 'sub_200ms_response',
+                  'scalability': '10k_concurrent_users',
+                  'security': 'enterprise_grade'
+              },
+              'timeline': '2_weeks',
+              'deliverables': ['architecture', 'implementation', 'tests', 'documentation']
+          }
+          
+          collaboration_id = await message_bus.request_collaboration(
+              initiator_id=architect_agent.agent_id,
+              target_agents=[developer_agent.agent_id, qa_agent.agent_id],
+              collaboration_spec=collaboration_spec
+          )
+          
+          return collaboration_id
+    
+    variables:
+      - name: "message_types"
+        description: "Types of A2A messages"
+        type: "array"
+        default: ["task_request", "knowledge_share", "collaboration_invite"]
+      - name: "communication_protocol"
+        description: "Communication protocol type"
+        type: "string"
+        options: ["async", "sync", "hybrid"]
+        default: "async"
+
+  # === INTELLIGENT CODING TEMPLATES ===
+  
+  ai_enhanced_class_template:
+    name: "AI-Enhanced Class Implementation"
+    description: "Template for classes with AI assistance and autonomous capabilities"
+    language: "python"
+    
+    template: |
+      """
+      {{class_name}} - AI-Enhanced Implementation
+      
+      Features:
+      - AI-assisted method generation
+      - Intelligent error handling
+      - Performance optimization
+      - Self-documentation
+      """
+      
+      import asyncio
+      import logging
+      from typing import Dict, List, Any, Optional, Union
+      from dataclasses import dataclass
+      from abc import ABC, abstractmethod
+      
+      from src.utils.ai_assistant import AIAssistant
+      from src.utils.performance_monitor import PerformanceMonitor
+      from src.utils.error_handler import IntelligentErrorHandler
+      
+      class {{class_name}}:
+          """
+          {{class_description}}
+          
+          AI-Enhanced Features:
+          - Intelligent method suggestions
+          - Automated optimization
+          - Self-healing capabilities
+          - Performance monitoring
+          """
+          
+          def __init__(self, **kwargs):
+              self.ai_assistant = AIAssistant()
+              self.performance_monitor = PerformanceMonitor()
+              self.error_handler = IntelligentErrorHandler()
+              self.optimization_enabled = True
+              self.learning_mode = True
+              
+              # Initialize with AI assistance
+              self._ai_enhanced_initialization(**kwargs)
+              
+          async def _ai_enhanced_initialization(self, **kwargs):
+              """AI-assisted initialization with intelligent configuration"""
+              # Use AI to optimize initial configuration
+              optimal_config = await self.ai_assistant.optimize_configuration(
+                  class_type=self.__class__.__name__,
+                  parameters=kwargs
+              )
+              
+              # Apply optimized configuration
+              for key, value in optimal_config.items():
+                  setattr(self, key, value)
+                  
+          @performance_monitor.track_method
+          async def {{primary_method}}(self, {{method_parameters}}) -> {{return_type}}:
+              """
+              {{method_description}}
+              
+              AI Enhancements:
+              - Intelligent parameter validation
+              - Automated optimization
+              - Error prediction and prevention
+              """
+              try:
+                  # AI-assisted parameter validation
+                  validated_params = await self.ai_assistant.validate_parameters(
+                      method_name="{{primary_method}}",
+                      parameters=locals()
+                  )
+                  
+                  # Intelligent approach selection
+                  approach = await self.ai_assistant.select_optimal_approach(
+                      method_name="{{primary_method}}",
+                      parameters=validated_params,
+                      context=self._get_context()
+                  )
+                  
+                  # Execute with AI monitoring
+                  result = await self._execute_with_ai_assistance(approach, validated_params)
+                  
+                  # Learn from execution
+                  if self.learning_mode:
+                      await self._learn_from_execution("{{primary_method}}", validated_params, result)
+                      
+                  return result
+                  
+              except Exception as e:
+                  # Intelligent error handling and recovery
+                  return await self.error_handler.handle_and_recover(
+                      error=e,
+                      method_name="{{primary_method}}",
+                      parameters=locals(),
+                      recovery_strategies=self._get_recovery_strategies()
+                  )
+                  
+          async def _execute_with_ai_assistance(
+              self, 
+              approach: str, 
+              parameters: Dict[str, Any]
+          ) -> Any:
+              """Execute method with AI assistance and optimization"""
+              
+              # AI-guided implementation selection
+              if approach == "optimized":
+                  return await self._optimized_implementation(parameters)
+              elif approach == "secure":
+                  return await self._secure_implementation(parameters)
+              elif approach == "scalable":
+                  return await self._scalable_implementation(parameters)
+              else:
+                  return await self._default_implementation(parameters)
+                  
+          async def _optimized_implementation(self, parameters: Dict[str, Any]) -> Any:
+              """AI-optimized implementation for performance"""
+              # Implementation with AI-suggested optimizations
+              pass
+              
+          async def _secure_implementation(self, parameters: Dict[str, Any]) -> Any:
+              """Security-focused implementation with AI validation"""
+              # Implementation with AI security enhancements
+              pass
+              
+          async def _scalable_implementation(self, parameters: Dict[str, Any]) -> Any:
+              """Scalability-optimized implementation"""
+              # Implementation with AI scalability patterns
+              pass
+              
+          async def _default_implementation(self, parameters: Dict[str, Any]) -> Any:
+              """Standard implementation with AI assistance"""
+              # Default implementation with AI monitoring
+              pass
+              
+          async def _learn_from_execution(
+              self, 
+              method_name: str, 
+              parameters: Dict[str, Any], 
+              result: Any
+          ) -> None:
+              """Learn from method execution to improve future performance"""
+              learning_data = {
+                  'method': method_name,
+                  'parameters': parameters,
+                  'result_type': type(result).__name__,
+                  'execution_time': self.performance_monitor.get_last_execution_time(),
+                  'success': True,
+                  'context': self._get_context()
+              }
+              
+              await self.ai_assistant.learn_from_execution(learning_data)
+              
+          def _get_context(self) -> Dict[str, Any]:
+              """Get current context for AI decision making"""
+              return {
+                  'instance_state': {k: v for k, v in self.__dict__.items() 
+                                   if not k.startswith('_')},
+                  'performance_metrics': self.performance_monitor.get_current_metrics(),
+                  'optimization_enabled': self.optimization_enabled
+              }
+              
+          def _get_recovery_strategies(self) -> List[str]:
+              """Get available recovery strategies for error handling"""
+              return [
+                  'retry_with_backoff',
+                  'fallback_implementation',
+                  'parameter_adjustment',
+                  'graceful_degradation'
+              ]
+    
+    variables:
+      - name: "class_name"
+        description: "Name of the AI-enhanced class"
+        type: "string"
+        required: true
+      - name: "class_description"
+        description: "Description of the class purpose"
+        type: "string"
+        required: true
+      - name: "primary_method"
+        description: "Main method of the class"
+        type: "string"
+        required: true
+      - name: "method_parameters"
+        description: "Parameters for the primary method"
+        type: "string"
+        default: "data: Dict[str, Any]"
+      - name: "return_type"
+        description: "Return type of the primary method"
+        type: "string"
+        default: "Dict[str, Any]"
+      - name: "method_description"
+        description: "Description of the primary method"
+        type: "string"
+        required: true
+
+  # === PERFORMANCE OPTIMIZATION TEMPLATES ===
+  
+  performance_optimized_template:
+    name: "Performance Optimized Implementation"
+    description: "Template for high-performance code with AI optimization"
+    language: "python"
+    
+    template: |
+      """
+      {{function_name}} - Performance Optimized Implementation
+      
+      AI-Powered Optimizations:
+      - Intelligent caching strategies
+      - Async/await optimization
+      - Memory usage optimization
+      - CPU utilization optimization
+      """
+      
+      import asyncio
+      import time
+      from typing import Dict, List, Any, Optional, Callable
+      from functools import wraps, lru_cache
+      from dataclasses import dataclass
+      import cProfile
+      import pstats
+      
+      from src.utils.performance_optimizer import AIPerformanceOptimizer
+      from src.utils.caching import IntelligentCache
+      from src.utils.profiler import PerformanceProfiler
+      
+      @dataclass
+      class PerformanceMetrics:
+          """Performance metrics for optimization tracking"""
+          execution_time: float
+          memory_usage: int
+          cpu_utilization: float
+          cache_hit_rate: float
+          optimization_score: float
+          
+      class PerformanceOptimizer:
+          """AI-powered performance optimization engine"""
+          
+          def __init__(self):
+              self.ai_optimizer = AIPerformanceOptimizer()
+              self.cache = IntelligentCache()
+              self.profiler = PerformanceProfiler()
+              self.optimization_history: List[PerformanceMetrics] = []
+              
+          def optimize_function(self, target_metric: str = "execution_time"):
+              """Decorator for AI-powered function optimization"""
+              def decorator(func: Callable) -> Callable:
+                  @wraps(func)
+                  async def wrapper(*args, **kwargs):
+                      # Start performance monitoring
+                      with self.profiler.profile_execution():
+                          # Check intelligent cache
+                          cache_key = self._generate_cache_key(func.__name__, args, kwargs)
+                          cached_result = await self.cache.get(cache_key)
+                          
+                          if cached_result:
+                              return cached_result
+                              
+                          # AI-optimized execution
+                          optimized_approach = await self.ai_optimizer.select_approach(
+                              function_name=func.__name__,
+                              parameters={'args': args, 'kwargs': kwargs},
+                              target_metric=target_metric,
+                              historical_data=self.optimization_history
+                          )
+                          
+                          # Execute with selected optimization
+                          result = await self._execute_optimized(
+                              func, optimized_approach, *args, **kwargs
+                          )
+                          
+                          # Cache result with intelligent TTL
+                          cache_ttl = await self.ai_optimizer.calculate_optimal_ttl(
+                              function_name=func.__name__,
+                              result_type=type(result),
+                              computation_cost=self.profiler.get_last_execution_time()
+                          )
+                          await self.cache.set(cache_key, result, ttl=cache_ttl)
+                          
+                          # Record performance metrics
+                          metrics = self._collect_metrics()
+                          self.optimization_history.append(metrics)
+                          
+                          # Learn from execution
+                          await self.ai_optimizer.learn_from_execution(
+                              function_name=func.__name__,
+                              approach=optimized_approach,
+                              metrics=metrics
+                          )
+                          
+                          return result
+                          
+                  return wrapper
+              return decorator
+              
+          async def _execute_optimized(
+              self, 
+              func: Callable, 
+              approach: str, 
+              *args, 
+              **kwargs
+          ) -> Any:
+              """Execute function with AI-selected optimization approach"""
+              
+              if approach == "parallel":
+                  return await self._parallel_execution(func, *args, **kwargs)
+              elif approach == "vectorized":
+                  return await self._vectorized_execution(func, *args, **kwargs)
+              elif approach == "streaming":
+                  return await self._streaming_execution(func, *args, **kwargs)
+              elif approach == "batch":
+                  return await self._batch_execution(func, *args, **kwargs)
+              else:
+                  return await func(*args, **kwargs)
+                  
+          async def _parallel_execution(self, func: Callable, *args, **kwargs) -> Any:
+              """Execute with intelligent parallelization"""
+              # AI-determined optimal parallelization strategy
+              optimal_workers = await self.ai_optimizer.calculate_optimal_workers(
+                  task_complexity=self._estimate_complexity(args, kwargs),
+                  system_resources=self._get_system_resources()
+              )
+              
+              # Split work intelligently
+              work_chunks = await self.ai_optimizer.split_work(args, kwargs, optimal_workers)
+              
+              # Execute in parallel
+              tasks = [func(*chunk_args, **chunk_kwargs) 
+                      for chunk_args, chunk_kwargs in work_chunks]
+              results = await asyncio.gather(*tasks)
+              
+              # Merge results intelligently
+              return await self.ai_optimizer.merge_results(results)
+              
+      # Performance optimized function template
+      @PerformanceOptimizer().optimize_function(target_metric="execution_time")
+      async def {{function_name}}({{function_parameters}}) -> {{return_type}}:
+          """
+          {{function_description}}
+          
+          Performance Features:
+          - AI-optimized execution paths
+          - Intelligent caching
+          - Resource optimization
+          - Predictive scaling
+          """
+          
+          # AI-suggested implementation approach
+          if await should_use_fast_path({{parameters}}):
+              return await fast_path_implementation({{parameters}})
+          elif await should_use_memory_efficient_path({{parameters}}):
+              return await memory_efficient_implementation({{parameters}})
+          else:
+              return await standard_implementation({{parameters}})
+              
+      async def fast_path_implementation({{function_parameters}}) -> {{return_type}}:
+          """Optimized for speed with AI enhancements"""
+          # Implementation optimized for execution time
+          pass
+          
+      async def memory_efficient_implementation({{function_parameters}}) -> {{return_type}}:
+          """Optimized for memory usage with AI monitoring"""
+          # Implementation optimized for memory efficiency
+          pass
+          
+      async def standard_implementation({{function_parameters}}) -> {{return_type}}:
+          """Standard implementation with AI monitoring"""
+          # Balanced implementation with AI oversight
+          pass
+          
+      # AI decision functions
+      async def should_use_fast_path({{function_parameters}}) -> bool:
+          """AI determines if fast path should be used"""
+          # AI logic for path selection
+          return False
+          
+      async def should_use_memory_efficient_path({{function_parameters}}) -> bool:
+          """AI determines if memory efficient path should be used"""
+          # AI logic for memory optimization
+          return False
+    
+    variables:
+      - name: "function_name"
+        description: "Name of the performance-optimized function"
+        type: "string"
+        required: true
+      - name: "function_parameters"
+        description: "Function parameters"
+        type: "string"
+        required: true
+      - name: "return_type"
+        description: "Function return type"
+        type: "string"
+        default: "Any"
+      - name: "function_description"
+        description: "Description of function purpose"
+        type: "string"
+        required: true
+      - name: "parameters"
+        description: "Parameter names for AI logic"
+        type: "string"
+        required: true
+
+  # === TESTING TEMPLATES ===
+  
+  ai_enhanced_test_template:
+    name: "AI-Enhanced Test Suite"
+    description: "Template for comprehensive testing with AI assistance"
+    language: "python"
+    
+    template: |
+      """
+      {{test_class_name}} - AI-Enhanced Test Suite
+      
+      Features:
+      - AI-generated test cases
+      - Intelligent edge case detection
+      - Performance regression testing
+      - Automated test optimization
+      """
+      
+      import pytest
+      import asyncio
+      from typing import Dict, List, Any, Optional
+      from unittest.mock import Mock, patch
+      
+      from src.utils.ai_test_generator import AITestGenerator
+      from src.utils.test_optimizer import TestOptimizer
+      from src.utils.performance_validator import PerformanceValidator
+      
+      class {{test_class_name}}:
+          """
+          AI-Enhanced test suite for {{target_class}}
+          
+          AI Features:
+          - Automatic test case generation
+          - Edge case discovery
+          - Performance validation
+          - Regression detection
+          """
+          
+          def setup_method(self):
+              """Setup with AI assistance"""
+              self.ai_test_generator = AITestGenerator()
+              self.test_optimizer = TestOptimizer()
+              self.performance_validator = PerformanceValidator()
+              self.target_instance = {{target_class}}()
+              
+          @pytest.mark.asyncio
+          async def test_{{primary_function}}_basic_functionality(self):
+              """Test basic functionality with AI-generated cases"""
+              
+              # Generate comprehensive test cases with AI
+              test_cases = await self.ai_test_generator.generate_test_cases(
+                  function_name="{{primary_function}}",
+                  coverage_type="basic_functionality",
+                  complexity_level="standard"
+              )
+              
+              for test_case in test_cases:
+                  with self.performance_validator.validate_performance():
+                      result = await self.target_instance.{{primary_function}}(
+                          **test_case['inputs']
+                      )
+                      
+                      # AI-powered result validation
+                      await self.ai_test_generator.validate_result(
+                          inputs=test_case['inputs'],
+                          expected=test_case['expected'],
+                          actual=result,
+                          validation_strategy="comprehensive"
+                      )
+                      
+          @pytest.mark.asyncio
+          async def test_{{primary_function}}_edge_cases(self):
+              """Test edge cases discovered by AI"""
+              
+              # AI discovers potential edge cases
+              edge_cases = await self.ai_test_generator.discover_edge_cases(
+                  function_name="{{primary_function}}",
+                  analysis_depth="deep",
+                  include_boundary_conditions=True
+              )
+              
+              for edge_case in edge_cases:
+                  try:
+                      result = await self.target_instance.{{primary_function}}(
+                          **edge_case['inputs']
+                      )
+                      
+                      # Validate edge case behavior
+                      assert edge_case['expected_behavior'] in ['success', 'controlled_failure']
+                      
+                      if edge_case['expected_behavior'] == 'success':
+                          assert result is not None
+                      
+                  except Exception as e:
+                      if edge_case['expected_behavior'] == 'controlled_failure':
+                          assert isinstance(e, edge_case['expected_exception'])
+                      else:
+                          pytest.fail(f"Unexpected exception in edge case: {e}")
+                          
+          @pytest.mark.asyncio
+          async def test_{{primary_function}}_performance(self):
+              """AI-powered performance testing"""
+              
+              # AI generates performance test scenarios
+              performance_scenarios = await self.ai_test_generator.generate_performance_scenarios(
+                  function_name="{{primary_function}}",
+                  load_patterns=["low", "medium", "high", "spike"],
+                  duration_seconds=30
+              )
+              
+              for scenario in performance_scenarios:
+                  with self.performance_validator.validate_scenario(scenario):
+                      # Execute performance test
+                      results = await self._execute_performance_test(scenario)
+                      
+                      # AI validates performance characteristics
+                      performance_assessment = await self.ai_test_generator.assess_performance(
+                          scenario=scenario,
+                          results=results,
+                          benchmarks=self._get_performance_benchmarks()
+                      )
+                      
+                      assert performance_assessment['meets_requirements']
+                      assert performance_assessment['performance_score'] >= 8.0
+                      
+          @pytest.mark.asyncio
+          async def test_{{primary_function}}_security(self):
+              """AI-generated security tests"""
+              
+              # AI generates security test cases
+              security_tests = await self.ai_test_generator.generate_security_tests(
+                  function_name="{{primary_function}}",
+                  security_aspects=["input_validation", "injection_prevention", "access_control"],
+                  threat_model="comprehensive"
+              )
+              
+              for security_test in security_tests:
+                  # Execute security test
+                  result = await self._execute_security_test(security_test)
+                  
+                  # Validate security behavior
+                  assert result['security_passed']
+                  assert not result['vulnerabilities_detected']
+                  
+          async def _execute_performance_test(self, scenario: Dict[str, Any]) -> Dict[str, Any]:
+              """Execute performance test scenario"""
+              start_time = asyncio.get_event_loop().time()
+              
+              # Simulate load according to scenario
+              tasks = []
+              for _ in range(scenario['concurrent_requests']):
+                  task = asyncio.create_task(
+                      self.target_instance.{{primary_function}}(**scenario['test_data'])
+                  )
+                  tasks.append(task)
+                  
+              results = await asyncio.gather(*tasks, return_exceptions=True)
+              end_time = asyncio.get_event_loop().time()
+              
+              return {
+                  'total_time': end_time - start_time,
+                  'successful_requests': sum(1 for r in results if not isinstance(r, Exception)),
+                  'failed_requests': sum(1 for r in results if isinstance(r, Exception)),
+                  'average_response_time': (end_time - start_time) / len(tasks),
+                  'throughput': len(tasks) / (end_time - start_time)
+              }
+              
+          async def _execute_security_test(self, security_test: Dict[str, Any]) -> Dict[str, Any]:
+              """Execute security test case"""
+              try:
+                  # Attempt potentially malicious input
+                  result = await self.target_instance.{{primary_function}}(
+                      **security_test['malicious_inputs']
+                  )
+                  
+                  # Check if malicious input was properly handled
+                  if security_test['should_be_rejected']:
+                      return {
+                          'security_passed': False,
+                          'vulnerabilities_detected': True,
+                          'issue': 'Malicious input was not rejected'
+                      }
+                  else:
+                      return {
+                          'security_passed': True,
+                          'vulnerabilities_detected': False
+                      }
+                      
+              except Exception as e:
+                  if security_test['should_be_rejected']:
+                      return {
+                          'security_passed': True,
+                          'vulnerabilities_detected': False,
+                          'properly_rejected': True
+                      }
+                  else:
+                      return {
+                          'security_passed': False,
+                          'vulnerabilities_detected': True,
+                          'unexpected_exception': str(e)
+                      }
+                      
+          def _get_performance_benchmarks(self) -> Dict[str, float]:
+              """Get performance benchmarks for validation"""
+              return {
+                  'max_response_time': 2.0,  # seconds
+                  'min_throughput': 100.0,   # requests per second
+                  'max_memory_usage': 1024 * 1024 * 100,  # 100MB
+                  'max_cpu_usage': 80.0      # percent
+              }
+    
+    variables:
+      - name: "test_class_name"
+        description: "Name of the test class"
+        type: "string"
+        required: true
+      - name: "target_class"
+        description: "Class being tested"
+        type: "string"
+        required: true
+      - name: "primary_function"
+        description: "Main function to test"
+        type: "string"
+        required: true
+
+# === TEMPLATE CONFIGURATION ===
+
+template_config:
+  ai_assistance:
+    code_generation: "enabled"
+    intelligent_suggestions: "enabled"
+    context_awareness: "maximum"
+    learning_from_usage: "enabled"
+    
+  quality_assurance:
+    automated_validation: "enabled"
+    best_practices_enforcement: "strict"
+    performance_optimization: "automatic"
+    security_checking: "comprehensive"
+    
+  customization:
+    variable_substitution: "intelligent"
+    context_adaptation: "automatic"
+    pattern_recognition: "advanced"
+    template_evolution: "continuous"

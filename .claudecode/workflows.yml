@@ -1,0 +1,482 @@
+# Claude Code Advanced Workflows Configuration
+# Autonomous SDLC Agent - Intelligent Development Workflows
+
+workflows:
+  # === CORE DEVELOPMENT WORKFLOWS ===
+  
+  autonomous_architecture_design:
+    name: "Autonomous Architecture Design"
+    description: "AI-driven system architecture design and validation"
+    trigger: "architecture_request"
+    agents: ["claude_architect", "claude_researcher", "gemini_analyzer"]
+    
+    steps:
+      1_requirements_analysis:
+        agent: "claude_architect"
+        action: "analyze_requirements"
+        inputs: ["business_requirements", "technical_constraints", "performance_targets"]
+        outputs: ["requirement_analysis", "constraint_mapping", "success_criteria"]
+        
+      2_technology_research:
+        agent: "claude_researcher"
+        action: "research_technologies"
+        inputs: ["requirement_analysis", "industry_trends", "innovation_opportunities"]
+        outputs: ["technology_recommendations", "risk_assessment", "innovation_potential"]
+        
+      3_architecture_generation:
+        agent: "claude_architect"
+        action: "generate_architecture"
+        inputs: ["technology_recommendations", "requirement_analysis"]
+        outputs: ["system_architecture", "component_design", "integration_strategy"]
+        
+      4_feasibility_analysis:
+        agent: "gemini_analyzer"
+        action: "analyze_feasibility"
+        inputs: ["system_architecture", "performance_targets"]
+        outputs: ["feasibility_report", "performance_predictions", "optimization_opportunities"]
+        
+      5_architecture_validation:
+        agent: "claude_architect"
+        action: "validate_architecture"
+        inputs: ["system_architecture", "feasibility_report"]
+        outputs: ["validated_architecture", "implementation_roadmap", "risk_mitigation_plan"]
+    
+    quality_gates:
+      - architecture_completeness: "> 95%"
+      - performance_feasibility: "> 90%"
+      - security_compliance: "100%"
+      - innovation_score: "> 8.0"
+    
+    success_criteria:
+      - comprehensive_architecture_documentation
+      - validated_performance_characteristics
+      - clear_implementation_roadmap
+      - identified_innovation_opportunities
+
+  intelligent_code_generation:
+    name: "Intelligent Code Generation"
+    description: "Multi-agent collaborative code generation with quality assurance"
+    trigger: "implementation_request"
+    agents: ["claude_lead_dev", "claude_specialists", "openai_generator", "claude_qa"]
+    
+    steps:
+      1_task_decomposition:
+        agent: "claude_lead_dev"
+        action: "decompose_implementation"
+        inputs: ["feature_requirements", "architecture_context"]
+        outputs: ["task_breakdown", "complexity_analysis", "resource_allocation"]
+        
+      2_parallel_implementation:
+        agents: ["claude_specialist_frontend", "claude_specialist_backend", "claude_specialist_data"]
+        action: "implement_components"
+        mode: "parallel"
+        inputs: ["task_breakdown", "coding_standards", "integration_requirements"]
+        outputs: ["component_implementations", "unit_tests", "documentation"]
+        
+      3_rapid_prototyping:
+        agent: "openai_generator"
+        action: "generate_alternatives"
+        inputs: ["component_implementations", "performance_requirements"]
+        outputs: ["alternative_implementations", "optimization_suggestions", "creative_solutions"]
+        
+      4_code_integration:
+        agent: "claude_lead_dev"
+        action: "integrate_components"
+        inputs: ["component_implementations", "alternative_implementations"]
+        outputs: ["integrated_solution", "integration_tests", "performance_validation"]
+        
+      5_quality_validation:
+        agent: "claude_qa"
+        action: "validate_quality"
+        inputs: ["integrated_solution", "quality_standards"]
+        outputs: ["quality_report", "test_results", "improvement_recommendations"]
+    
+    quality_gates:
+      - code_quality_score: "> 9.5"
+      - test_coverage: "> 95%"
+      - performance_benchmarks: "within_targets"
+      - security_validation: "passed"
+    
+    automation:
+      - automated_testing: "continuous"
+      - quality_monitoring: "real_time"
+      - performance_tracking: "automated"
+      - documentation_generation: "automatic"
+
+  autonomous_debugging:
+    name: "Autonomous Debugging and Issue Resolution"
+    description: "AI-powered debugging with root cause analysis and automated fixes"
+    trigger: ["error_detection", "performance_degradation", "quality_issues"]
+    agents: ["claude_lead_dev", "gemini_analyzer", "claude_specialist_backend"]
+    
+    steps:
+      1_issue_detection:
+        agent: "gemini_analyzer"
+        action: "detect_anomalies"
+        inputs: ["system_metrics", "error_logs", "performance_data"]
+        outputs: ["issue_identification", "severity_assessment", "impact_analysis"]
+        
+      2_root_cause_analysis:
+        agent: "claude_lead_dev"
+        action: "analyze_root_cause"
+        inputs: ["issue_identification", "code_context", "system_state"]
+        outputs: ["root_cause_analysis", "affected_components", "fix_strategy"]
+        
+      3_solution_generation:
+        agent: "claude_specialist_backend"
+        action: "generate_solutions"
+        inputs: ["root_cause_analysis", "fix_strategy"]
+        outputs: ["solution_options", "implementation_plans", "risk_assessment"]
+        
+      4_automated_fixing:
+        agent: "claude_lead_dev"
+        action: "implement_fix"
+        inputs: ["solution_options", "quality_standards"]
+        outputs: ["implemented_fix", "validation_tests", "monitoring_setup"]
+        
+      5_verification:
+        agent: "claude_qa"
+        action: "verify_resolution"
+        inputs: ["implemented_fix", "original_issue"]
+        outputs: ["resolution_confirmation", "regression_tests", "prevention_measures"]
+    
+    automation:
+      - continuous_monitoring: "enabled"
+      - automatic_detection: "real_time"
+      - proactive_prevention: "ai_powered"
+      - learning_integration: "continuous"
+
+  # === INNOVATION AND RESEARCH WORKFLOWS ===
+  
+  breakthrough_innovation:
+    name: "Breakthrough Innovation Discovery"
+    description: "AI-driven innovation research and breakthrough solution development"
+    trigger: "innovation_challenge"
+    agents: ["claude_researcher", "claude_architect", "openai_generator"]
+    
+    steps:
+      1_innovation_research:
+        agent: "claude_researcher"
+        action: "research_innovations"
+        inputs: ["challenge_definition", "current_state_analysis", "industry_trends"]
+        outputs: ["innovation_opportunities", "breakthrough_potential", "research_insights"]
+        
+      2_creative_exploration:
+        agent: "openai_generator"
+        action: "explore_creative_solutions"
+        inputs: ["innovation_opportunities", "constraint_parameters"]
+        outputs: ["creative_concepts", "novel_approaches", "disruptive_ideas"]
+        
+      3_feasibility_assessment:
+        agent: "claude_architect"
+        action: "assess_feasibility"
+        inputs: ["creative_concepts", "technical_constraints"]
+        outputs: ["feasibility_analysis", "implementation_complexity", "resource_requirements"]
+        
+      4_prototype_development:
+        agent: "claude_lead_dev"
+        action: "develop_prototype"
+        inputs: ["feasible_concepts", "proof_of_concept_requirements"]
+        outputs: ["working_prototype", "validation_results", "scaling_strategy"]
+        
+      5_innovation_validation:
+        agent: "claude_researcher"
+        action: "validate_innovation"
+        inputs: ["working_prototype", "success_metrics"]
+        outputs: ["innovation_assessment", "impact_prediction", "commercialization_plan"]
+    
+    success_criteria:
+      - breakthrough_potential: "> 8.0"
+      - technical_feasibility: "> 85%"
+      - market_impact: "> 7.5"
+      - implementation_clarity: "> 90%"
+
+  autonomous_optimization:
+    name: "Autonomous Performance Optimization"
+    description: "Continuous AI-driven system optimization and enhancement"
+    trigger: "optimization_cycle"
+    agents: ["gemini_optimizer", "claude_architect", "claude_devops"]
+    frequency: "continuous"
+    
+    steps:
+      1_performance_analysis:
+        agent: "gemini_analyzer"
+        action: "analyze_performance"
+        inputs: ["system_metrics", "performance_baselines", "usage_patterns"]
+        outputs: ["performance_assessment", "bottleneck_identification", "optimization_opportunities"]
+        
+      2_optimization_strategy:
+        agent: "gemini_optimizer"
+        action: "design_optimization"
+        inputs: ["performance_assessment", "optimization_opportunities"]
+        outputs: ["optimization_strategy", "improvement_targets", "implementation_approach"]
+        
+      3_architecture_optimization:
+        agent: "claude_architect"
+        action: "optimize_architecture"
+        inputs: ["optimization_strategy", "system_architecture"]
+        outputs: ["optimized_architecture", "scaling_improvements", "efficiency_gains"]
+        
+      4_implementation_optimization:
+        agent: "claude_lead_dev"
+        action: "optimize_implementation"
+        inputs: ["optimized_architecture", "performance_targets"]
+        outputs: ["optimized_code", "performance_improvements", "resource_efficiency"]
+        
+      5_deployment_optimization:
+        agent: "claude_devops"
+        action: "optimize_deployment"
+        inputs: ["optimized_implementation", "infrastructure_context"]
+        outputs: ["optimized_deployment", "monitoring_enhancements", "scaling_automation"]
+    
+    automation:
+      - continuous_monitoring: "enabled"
+      - automatic_optimization: "gradual"
+      - performance_tracking: "real_time"
+      - rollback_capability: "instant"
+
+  # === QUALITY ASSURANCE WORKFLOWS ===
+  
+  comprehensive_quality_validation:
+    name: "Comprehensive Quality Validation"
+    description: "Multi-dimensional quality assurance with AI-powered validation"
+    trigger: "quality_check_request"
+    agents: ["claude_qa", "claude_security", "gemini_analyzer"]
+    
+    steps:
+      1_code_quality_analysis:
+        agent: "claude_qa"
+        action: "analyze_code_quality"
+        inputs: ["source_code", "quality_standards", "best_practices"]
+        outputs: ["quality_metrics", "code_issues", "improvement_recommendations"]
+        
+      2_security_assessment:
+        agent: "claude_security"
+        action: "assess_security"
+        inputs: ["source_code", "security_standards", "threat_models"]
+        outputs: ["security_assessment", "vulnerability_report", "security_recommendations"]
+        
+      3_performance_validation:
+        agent: "gemini_analyzer"
+        action: "validate_performance"
+        inputs: ["implementation", "performance_requirements", "load_profiles"]
+        outputs: ["performance_validation", "bottleneck_analysis", "optimization_suggestions"]
+        
+      4_integration_testing:
+        agent: "claude_qa"
+        action: "test_integration"
+        inputs: ["integrated_system", "integration_requirements"]
+        outputs: ["integration_results", "compatibility_assessment", "regression_analysis"]
+        
+      5_user_experience_validation:
+        agent: "claude_specialist_frontend"
+        action: "validate_user_experience"
+        inputs: ["user_interface", "usability_standards", "accessibility_requirements"]
+        outputs: ["ux_assessment", "usability_report", "accessibility_compliance"]
+    
+    quality_gates:
+      - overall_quality_score: "> 9.0"
+      - security_compliance: "100%"
+      - performance_standards: "met"
+      - user_experience_score: "> 8.5"
+
+  # === DEPLOYMENT AND OPERATIONS WORKFLOWS ===
+  
+  intelligent_deployment:
+    name: "Intelligent Deployment and Rollout"
+    description: "AI-orchestrated deployment with intelligent rollout strategies"
+    trigger: "deployment_request"
+    agents: ["claude_devops", "claude_security", "gemini_analyzer"]
+    
+    steps:
+      1_deployment_planning:
+        agent: "claude_devops"
+        action: "plan_deployment"
+        inputs: ["deployment_requirements", "infrastructure_context", "rollout_strategy"]
+        outputs: ["deployment_plan", "risk_assessment", "rollback_strategy"]
+        
+      2_security_validation:
+        agent: "claude_security"
+        action: "validate_deployment_security"
+        inputs: ["deployment_plan", "security_policies"]
+        outputs: ["security_clearance", "compliance_validation", "security_monitoring_setup"]
+        
+      3_canary_deployment:
+        agent: "claude_devops"
+        action: "execute_canary_deployment"
+        inputs: ["deployment_plan", "monitoring_configuration"]
+        outputs: ["canary_results", "performance_metrics", "error_rates"]
+        
+      4_rollout_analysis:
+        agent: "gemini_analyzer"
+        action: "analyze_rollout"
+        inputs: ["canary_results", "success_criteria"]
+        outputs: ["rollout_assessment", "risk_evaluation", "continuation_recommendation"]
+        
+      5_full_deployment:
+        agent: "claude_devops"
+        action: "complete_deployment"
+        inputs: ["rollout_assessment", "deployment_plan"]
+        outputs: ["deployment_status", "monitoring_alerts", "operational_metrics"]
+    
+    automation:
+      - automated_rollback: "on_failure"
+      - progressive_rollout: "intelligence_guided"
+      - real_time_monitoring: "comprehensive"
+      - alert_management: "intelligent"
+
+  # === COLLABORATION AND COORDINATION WORKFLOWS ===
+  
+  multi_agent_collaboration:
+    name: "Multi-Agent Collaborative Development"
+    description: "Coordinated multi-agent development with intelligent task distribution"
+    trigger: "complex_project_request"
+    agents: ["all_available_agents"]
+    coordination: "hierarchical_with_peer_coordination"
+    
+    steps:
+      1_project_analysis:
+        agent: "claude_architect"
+        action: "analyze_project_complexity"
+        inputs: ["project_requirements", "resource_availability", "timeline_constraints"]
+        outputs: ["complexity_assessment", "resource_requirements", "task_breakdown"]
+        
+      2_team_formation:
+        agent: "claude_architect"
+        action: "form_agent_teams"
+        inputs: ["task_breakdown", "agent_capabilities", "collaboration_patterns"]
+        outputs: ["team_assignments", "collaboration_strategy", "communication_protocols"]
+        
+      3_parallel_execution:
+        agents: "assigned_teams"
+        action: "execute_tasks"
+        mode: "parallel_with_coordination"
+        inputs: ["team_assignments", "coordination_protocols"]
+        outputs: ["task_results", "progress_updates", "coordination_messages"]
+        
+      4_integration_coordination:
+        agent: "claude_lead_dev"
+        action: "coordinate_integration"
+        inputs: ["task_results", "integration_requirements"]
+        outputs: ["integrated_solution", "conflict_resolutions", "quality_validation"]
+        
+      5_project_completion:
+        agent: "claude_architect"
+        action: "finalize_project"
+        inputs: ["integrated_solution", "project_requirements"]
+        outputs: ["final_deliverable", "project_documentation", "lessons_learned"]
+    
+    coordination_mechanisms:
+      - real_time_communication: "enabled"
+      - knowledge_sharing: "continuous"
+      - conflict_resolution: "automated"
+      - progress_synchronization: "real_time"
+
+  # === LEARNING AND ADAPTATION WORKFLOWS ===
+  
+  continuous_learning:
+    name: "Continuous Learning and Adaptation"
+    description: "Autonomous learning and capability enhancement"
+    trigger: "learning_cycle"
+    agents: ["all_agents"]
+    frequency: "continuous"
+    
+    steps:
+      1_experience_collection:
+        agents: "all_agents"
+        action: "collect_experiences"
+        inputs: ["task_outcomes", "performance_metrics", "user_feedback"]
+        outputs: ["experience_data", "performance_patterns", "improvement_opportunities"]
+        
+      2_pattern_analysis:
+        agent: "gemini_analyzer"
+        action: "analyze_patterns"
+        inputs: ["experience_data", "historical_performance"]
+        outputs: ["pattern_insights", "optimization_opportunities", "learning_priorities"]
+        
+      3_knowledge_synthesis:
+        agent: "claude_researcher"
+        action: "synthesize_knowledge"
+        inputs: ["pattern_insights", "external_knowledge", "research_findings"]
+        outputs: ["synthesized_knowledge", "capability_enhancements", "innovation_opportunities"]
+        
+      4_capability_update:
+        agents: "all_agents"
+        action: "update_capabilities"
+        inputs: ["synthesized_knowledge", "capability_enhancements"]
+        outputs: ["enhanced_capabilities", "updated_models", "improved_performance"]
+        
+      5_validation_testing:
+        agent: "claude_qa"
+        action: "validate_improvements"
+        inputs: ["enhanced_capabilities", "performance_baselines"]
+        outputs: ["validation_results", "performance_improvements", "regression_checks"]
+    
+    learning_mechanisms:
+      - experience_replay: "enabled"
+      - knowledge_transfer: "cross_agent"
+      - adaptive_optimization: "continuous"
+      - meta_learning: "advanced"
+
+# === WORKFLOW ORCHESTRATION CONFIGURATION ===
+
+orchestration:
+  coordination_engine:
+    type: "intelligent_hierarchical"
+    decision_making: "consensus_with_expert_override"
+    conflict_resolution: "automated_with_escalation"
+    resource_allocation: "dynamic_optimization"
+    
+  communication_protocols:
+    message_routing: "capability_based"
+    priority_handling: "intelligent"
+    broadcast_mechanisms: "selective"
+    feedback_loops: "real_time"
+    
+  quality_assurance:
+    workflow_validation: "automatic"
+    performance_monitoring: "continuous"
+    error_handling: "intelligent_recovery"
+    improvement_tracking: "automated"
+
+# === AUTOMATION AND INTEGRATION ===
+
+automation:
+  trigger_mechanisms:
+    event_driven: "enabled"
+    schedule_based: "configurable"
+    threshold_based: "intelligent"
+    manual_initiation: "available"
+    
+  integration_points:
+    development_tools: "seamless"
+    deployment_systems: "automated"
+    monitoring_platforms: "integrated"
+    communication_tools: "embedded"
+    
+  failure_handling:
+    automatic_retry: "intelligent"
+    graceful_degradation: "enabled"
+    error_escalation: "smart"
+    recovery_procedures: "automated"
+
+# === PERFORMANCE AND OPTIMIZATION ===
+
+performance:
+  workflow_optimization:
+    execution_time: "minimized"
+    resource_utilization: "optimized"
+    parallelization: "intelligent"
+    caching: "strategic"
+    
+  scalability:
+    concurrent_workflows: "unlimited"
+    resource_scaling: "automatic"
+    load_balancing: "intelligent"
+    bottleneck_prevention: "proactive"
+    
+  monitoring:
+    real_time_metrics: "comprehensive"
+    performance_analytics: "detailed"
+    trend_analysis: "predictive"
+    optimization_suggestions: "automatic"

@@ -1,0 +1,471 @@
+# Claude Code Advanced Rules Configuration
+# Autonomous SDLC Agent - Intelligent Development Rules and Standards
+
+rules:
+  # === CODE QUALITY RULES ===
+  
+  architecture_rules:
+    name: "Architecture and Design Rules"
+    description: "AI-enforced architectural patterns and design principles"
+    priority: "critical"
+    
+    rules:
+      clean_architecture:
+        description: "Enforce Clean Architecture principles"
+        pattern: "layered_dependency_flow"
+        enforcement: "strict"
+        ai_validation: "enabled"
+        rules:
+          - "Business logic must not depend on external frameworks"
+          - "Use interfaces for external dependencies"
+          - "Implement dependency inversion principle"
+          - "Separate concerns into distinct layers"
+        auto_fix: "suggestions"
+        examples:
+          correct: |
+            # Clean architecture with proper dependency flow
+            class BusinessLogic:
+                def __init__(self, repository: IRepository):
+                    self._repository = repository  # Interface dependency
+                    
+                async def process_data(self, data: Data) -> Result:
+                    # Pure business logic without external dependencies
+                    validated_data = self._validate_business_rules(data)
+                    return await self._repository.save(validated_data)
+          
+          incorrect: |
+            # Violation: Business logic depends on concrete database
+            class BusinessLogic:
+                def __init__(self):
+                    self.db = PostgreSQLDatabase()  # Direct dependency
+                    
+                async def process_data(self, data: Data) -> Result:
+                    # Business logic mixed with database concerns
+                    return await self.db.execute_query("INSERT INTO...")
+
+      a2a_communication:
+        description: "Enforce A2A communication patterns"
+        pattern: "standardized_messaging"
+        enforcement: "strict"
+        ai_validation: "enabled"
+        rules:
+          - "Use standardized A2A message formats"
+          - "Implement proper error handling for agent communication"
+          - "Include correlation IDs for request tracking"
+          - "Use async/await for all agent interactions"
+        auto_fix: "automatic"
+        examples:
+          correct: |
+            # Proper A2A communication
+            async def communicate_with_agent(self, target_agent_id: str, message: A2AMessage):
+                try:
+                    message.correlation_id = str(uuid.uuid4())
+                    response = await self.message_bus.send_message(message)
+                    return await self._handle_response(response)
+                except A2ACommunicationError as e:
+                    await self._handle_communication_error(e)
+
+      single_responsibility:
+        description: "Enforce Single Responsibility Principle"
+        pattern: "focused_classes"
+        enforcement: "warning"
+        ai_analysis: "automatic"
+        rules:
+          - "Classes should have only one reason to change"
+          - "Methods should do one thing well"
+          - "Separate data access from business logic"
+        metrics:
+          max_methods_per_class: 10
+          max_lines_per_method: 50
+          max_dependencies_per_class: 5
+
+  code_style_rules:
+    name: "Code Style and Formatting Rules"
+    description: "AI-enforced code style and formatting standards"
+    priority: "high"
+    
+    rules:
+      python_formatting:
+        description: "Python code formatting standards"
+        enforcement: "automatic"
+        tools: ["black", "isort", "autoflake"]
+        rules:
+          - "Use Black for code formatting"
+          - "Sort imports with isort"
+          - "Remove unused imports automatically"
+          - "Maximum line length: 88 characters"
+          - "Use f-strings for string formatting"
+        auto_fix: "automatic"
+
+      typescript_formatting:
+        description: "TypeScript/JavaScript formatting standards"
+        enforcement: "automatic"
+        tools: ["prettier", "eslint"]
+        rules:
+          - "Use Prettier for consistent formatting"
+          - "Enforce ESLint rules"
+          - "Use TypeScript strict mode"
+          - "Prefer const over let where possible"
+        auto_fix: "automatic"
+
+      naming_conventions:
+        description: "Consistent naming conventions"
+        enforcement: "strict"
+        ai_validation: "enabled"
+        rules:
+          - "Classes: PascalCase (e.g., UserRepository)"
+          - "Functions/methods: snake_case (e.g., get_user_data)"
+          - "Constants: UPPER_SNAKE_CASE (e.g., MAX_RETRIES)"
+          - "Private methods: _leading_underscore"
+          - "AI agents: descriptive names with role (e.g., claude_architect)"
+        auto_fix: "suggestions"
+
+  performance_rules:
+    name: "Performance and Optimization Rules"
+    description: "AI-monitored performance standards and optimization rules"
+    priority: "high"
+    
+    rules:
+      async_await_usage:
+        description: "Proper async/await usage for performance"
+        enforcement: "strict"
+        ai_detection: "automatic"
+        rules:
+          - "Use async/await for all I/O operations"
+          - "Avoid blocking calls in async functions"
+          - "Use asyncio.gather() for parallel operations"
+          - "Implement proper error handling in async code"
+        performance_targets:
+          max_response_time: "200ms"
+          min_throughput: "1000_rps"
+        auto_fix: "suggestions"
+        examples:
+          correct: |
+            # Proper async usage
+            async def process_multiple_requests(self, requests: List[Request]) -> List[Result]:
+                tasks = [self._process_single_request(req) for req in requests]
+                return await asyncio.gather(*tasks)
+          
+          incorrect: |
+            # Blocking operation in async function
+            async def process_requests(self, requests: List[Request]) -> List[Result]:
+                results = []
+                for req in requests:
+                    result = requests.get(req.url)  # Blocking call!
+                    results.append(result)
+                return results
+
+      caching_optimization:
+        description: "Intelligent caching rules"
+        enforcement: "warning"
+        ai_suggestions: "enabled"
+        rules:
+          - "Cache expensive computations"
+          - "Use appropriate cache TTL values"
+          - "Implement cache invalidation strategies"
+          - "Monitor cache hit rates"
+        thresholds:
+          min_cache_hit_rate: 0.8
+          max_cache_memory_usage: "512MB"
+
+      database_optimization:
+        description: "Database performance rules"
+        enforcement: "strict"
+        ai_monitoring: "enabled"
+        rules:
+          - "Use database indexes appropriately"
+          - "Avoid N+1 query problems"
+          - "Use connection pooling"
+          - "Implement query timeouts"
+        performance_targets:
+          max_query_time: "100ms"
+          max_connections: 20
+
+  security_rules:
+    name: "Security and Compliance Rules"
+    description: "AI-enforced security standards and vulnerability prevention"
+    priority: "critical"
+    
+    rules:
+      input_validation:
+        description: "Comprehensive input validation"
+        enforcement: "strict"
+        ai_detection: "automatic"
+        rules:
+          - "Validate all external inputs"
+          - "Use parameterized queries for database access"
+          - "Sanitize user-provided data"
+          - "Implement rate limiting for APIs"
+        auto_fix: "suggestions"
+        examples:
+          correct: |
+            # Proper input validation
+            def validate_user_input(self, data: Dict[str, Any]) -> ValidatedData:
+                schema = UserInputSchema()
+                try:
+                    return schema.load(data)
+                except ValidationError as e:
+                    raise InvalidInputError(f"Invalid input: {e.messages}")
+          
+          incorrect: |
+            # No input validation
+            def process_user_data(self, data: Dict[str, Any]):
+                # Direct usage without validation - security risk!
+                return self.database.execute(f"SELECT * FROM users WHERE id = {data['id']}")
+
+      secret_management:
+        description: "Secure secret handling"
+        enforcement: "strict"
+        ai_scanning: "continuous"
+        rules:
+          - "Never hardcode secrets in source code"
+          - "Use environment variables or secret management services"
+          - "Rotate secrets regularly"
+          - "Log secret access attempts"
+        auto_detection: "enabled"
+        remediation: "automatic_masking"
+
+      authentication_authorization:
+        description: "Authentication and authorization rules"
+        enforcement: "strict"
+        ai_validation: "enabled"
+        rules:
+          - "Implement multi-factor authentication"
+          - "Use principle of least privilege"
+          - "Validate permissions for all operations"
+          - "Implement session management"
+        compliance_frameworks: ["SOC2", "ISO27001", "GDPR"]
+
+  ai_integration_rules:
+    name: "AI Integration and A2A Rules"
+    description: "Rules specific to AI integration and agent collaboration"
+    priority: "high"
+    
+    rules:
+      ai_provider_integration:
+        description: "Standards for AI provider integration"
+        enforcement: "strict"
+        ai_validation: "enabled"
+        rules:
+          - "Implement proper error handling for AI API failures"
+          - "Use appropriate timeout values for AI requests"
+          - "Implement fallback mechanisms for AI services"
+          - "Monitor AI service performance and costs"
+        performance_targets:
+          max_ai_response_time: "5s"
+          max_retry_attempts: 3
+        auto_fix: "suggestions"
+
+      agent_collaboration:
+        description: "A2A collaboration standards"
+        enforcement: "strict"
+        pattern_validation: "automatic"
+        rules:
+          - "Use standardized message formats for A2A communication"
+          - "Implement proper agent lifecycle management"
+          - "Handle agent failures gracefully"
+          - "Maintain agent state consistency"
+        examples:
+          correct: |
+            # Proper agent collaboration
+            async def collaborate_with_agents(self, task: Task) -> CollaborationResult:
+                try:
+                    team = await self._form_agent_team(task.requirements)
+                    result = await self._coordinate_team_execution(team, task)
+                    return await self._aggregate_results(result)
+                except AgentCommunicationError:
+                    return await self._handle_collaboration_failure(task)
+
+      ai_decision_making:
+        description: "Standards for AI-assisted decision making"
+        enforcement: "warning"
+        transparency: "required"
+        rules:
+          - "Document AI decision processes"
+          - "Implement human oversight for critical decisions"
+          - "Maintain audit trails for AI decisions"
+          - "Validate AI recommendations before implementation"
+
+  testing_rules:
+    name: "Testing and Quality Assurance Rules"
+    description: "AI-enhanced testing standards and quality gates"
+    priority: "high"
+    
+    rules:
+      test_coverage:
+        description: "Comprehensive test coverage requirements"
+        enforcement: "strict"
+        ai_monitoring: "continuous"
+        targets:
+          minimum_coverage: 95
+          critical_path_coverage: 100
+          integration_test_coverage: 90
+        rules:
+          - "All public methods must have unit tests"
+          - "Critical business logic requires 100% coverage"
+          - "Integration tests for all external dependencies"
+          - "Performance tests for critical paths"
+
+      test_quality:
+        description: "Test quality and effectiveness rules"
+        enforcement: "warning"
+        ai_analysis: "enabled"
+        rules:
+          - "Tests should be deterministic and repeatable"
+          - "Use meaningful test names and descriptions"
+          - "Implement proper test isolation"
+          - "Mock external dependencies appropriately"
+        metrics:
+          max_test_execution_time: "30s"
+          min_assertion_count: 1
+          max_test_complexity: 10
+
+      ai_assisted_testing:
+        description: "Standards for AI-generated tests"
+        enforcement: "warning"
+        validation: "human_review"
+        rules:
+          - "AI-generated tests require human validation"
+          - "Include edge cases discovered by AI"
+          - "Validate AI test assertions for correctness"
+          - "Maintain test maintainability despite AI generation"
+
+  documentation_rules:
+    name: "Documentation and Communication Rules"
+    description: "AI-enhanced documentation standards"
+    priority: "medium"
+    
+    rules:
+      code_documentation:
+        description: "Code documentation requirements"
+        enforcement: "warning"
+        ai_generation: "assisted"
+        rules:
+          - "All public APIs must have docstrings"
+          - "Complex algorithms require explanation comments"
+          - "Include usage examples in documentation"
+          - "Keep documentation synchronized with code"
+        coverage_targets:
+          public_api_documentation: 100
+          complex_method_documentation: 90
+        auto_generation: "enabled"
+
+      architecture_documentation:
+        description: "Architecture documentation standards"
+        enforcement: "strict"
+        ai_validation: "enabled"
+        rules:
+          - "Document architectural decisions with ADRs"
+          - "Maintain up-to-date system diagrams"
+          - "Document A2A communication patterns"
+          - "Include deployment and operational procedures"
+
+      ai_decision_documentation:
+        description: "AI decision documentation requirements"
+        enforcement: "strict"
+        transparency: "required"
+        rules:
+          - "Document AI model choices and rationale"
+          - "Explain AI-generated code modifications"
+          - "Maintain AI training and improvement logs"
+          - "Document agent collaboration patterns"
+
+# === RULE ENFORCEMENT CONFIGURATION ===
+
+enforcement:
+  mechanisms:
+    pre_commit_hooks:
+      enabled: true
+      rules: ["code_style_rules", "security_rules", "basic_quality_checks"]
+      ai_assistance: "enabled"
+      
+    continuous_integration:
+      enabled: true
+      rules: ["all_rules"]
+      blocking_violations: ["critical", "high"]
+      ai_analysis: "comprehensive"
+      
+    real_time_monitoring:
+      enabled: true
+      rules: ["performance_rules", "security_rules"]
+      ai_detection: "continuous"
+      
+    code_review_integration:
+      enabled: true
+      rules: ["architecture_rules", "ai_integration_rules"]
+      ai_suggestions: "enabled"
+
+  ai_assistance:
+    rule_suggestion:
+      enabled: true
+      learning_from_violations: true
+      adaptive_rule_refinement: true
+      
+    automatic_fixing:
+      enabled: true
+      confidence_threshold: 0.9
+      human_approval_required: ["critical_security", "architecture_changes"]
+      
+    violation_explanation:
+      enabled: true
+      context_aware: true
+      suggested_remediation: true
+
+# === QUALITY GATES ===
+
+quality_gates:
+  commit_gates:
+    - "No critical security violations"
+    - "Code formatting compliance"
+    - "Basic functionality tests pass"
+    
+  merge_gates:
+    - "All automated tests pass"
+    - "Code coverage meets minimum thresholds"
+    - "Security scan approval"
+    - "Performance benchmarks met"
+    
+  deployment_gates:
+    - "Integration tests pass"
+    - "Security compliance validated"
+    - "Performance regression tests pass"
+    - "AI agent functionality validated"
+
+# === CUSTOMIZATION AND LEARNING ===
+
+customization:
+  project_specific_rules:
+    enabled: true
+    ai_generation: "assisted"
+    validation: "required"
+    
+  rule_learning:
+    enabled: true
+    pattern_recognition: "automatic"
+    rule_suggestion: "ai_powered"
+    feedback_incorporation: "continuous"
+    
+  team_preferences:
+    enabled: true
+    preference_learning: "automatic"
+    team_consensus_required: true
+    override_capability: "limited"
+
+# === REPORTING AND ANALYTICS ===
+
+reporting:
+  violation_analytics:
+    enabled: true
+    trend_analysis: "automatic"
+    predictive_insights: "ai_powered"
+    
+  quality_metrics:
+    enabled: true
+    real_time_dashboards: true
+    improvement_tracking: "continuous"
+    
+  ai_impact_analysis:
+    enabled: true
+    rule_effectiveness: "measured"
+    ai_suggestion_accuracy: "tracked"
+    development_velocity_impact: "analyzed"
