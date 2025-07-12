@@ -16,41 +16,42 @@ logger = logging.getLogger(__name__)
 
 class ClaudeCodeBridge:
     """Bridge service to Claude Code CLI"""
-    
+
     def __init__(self):
+        """  Init   with enhanced functionality."""
         self.claude_code_path = self._find_claude_code()
         self.temp_dir = tempfile.mkdtemp(prefix="claude_bridge_")
-        
+
     def _find_claude_code(self) -> str:
         """Find Claude Code CLI installation"""
         try:
             # Try common installation paths
-            result = subprocess.run(['which', 'claude-code'], 
+            result = subprocess.run(['which', 'claude-code'],
                                   capture_output=True, text=True)
             if result.returncode == 0:
                 return result.stdout.strip()
-                
+
             # Try alternative paths
-            for path in ['/usr/local/bin/claude-code', 
+            for path in ['/usr/local/bin/claude-code',
                         os.path.expanduser('~/.local/bin/claude-code'),
                         'claude-code']:
-                if subprocess.run(['which', path], 
+                if subprocess.run(['which', path],
                                 capture_output=True).returncode == 0:
                     return path
-                    
+
         except Exception as e:
             logger.warning(f"Claude Code CLI not found: {e}")
-            
+
         return 'claude-code'  # Fallback
-    
-    async def analyze_code(self, code: str, language: str = "python", 
+
+    async def analyze_code(self, code: str, language: str = "python",
                           context: str = "") -> Dict[str, Any]:
         """Analyze code using Claude Code"""
         try:
             # Create temporary file
             temp_file = Path(self.temp_dir) / f"code.{language}"
             temp_file.write_text(code)
-            
+
             # Prepare Claude Code command
             cmd = [
                 self.claude_code_path,
@@ -58,19 +59,19 @@ class ClaudeCodeBridge:
                 str(temp_file),
                 '--format', 'json'
             ]
-            
+
             if context:
                 cmd.extend(['--context', context])
-            
+
             # Execute Claude Code
             process = await asyncio.create_subprocess_exec(
                 *cmd,
                 stdout=asyncio.subprocess.PIPE,
                 stderr=asyncio.subprocess.PIPE
             )
-            
+
             stdout, stderr = await process.communicate()
-            
+
             if process.returncode == 0:
                 result = json.loads(stdout.decode())
                 return {
@@ -87,7 +88,7 @@ class ClaudeCodeBridge:
                     'error': stderr.decode(),
                     'fallback_analysis': self._basic_analysis(code, language)
                 }
-                
+
         except Exception as e:
             logger.error(f"Claude Code bridge error: {e}")
             return {
@@ -95,7 +96,7 @@ class ClaudeCodeBridge:
                 'error': str(e),
                 'fallback_analysis': self._basic_analysis(code, language)
             }
-    
+
     async def generate_code(self, prompt: str, language: str = "python",
                            framework: str = "", style: str = "") -> Dict[str, Any]:
         """Generate code using Claude Code"""
@@ -107,20 +108,20 @@ class ClaudeCodeBridge:
                 '--language', language,
                 '--format', 'json'
             ]
-            
+
             if framework:
                 cmd.extend(['--framework', framework])
             if style:
                 cmd.extend(['--style', style])
-            
+
             process = await asyncio.create_subprocess_exec(
                 *cmd,
                 stdout=asyncio.subprocess.PIPE,
                 stderr=asyncio.subprocess.PIPE
             )
-            
+
             stdout, stderr = await process.communicate()
-            
+
             if process.returncode == 0:
                 result = json.loads(stdout.decode())
                 return {
@@ -135,21 +136,21 @@ class ClaudeCodeBridge:
                     'success': False,
                     'error': stderr.decode()
                 }
-                
+
         except Exception as e:
             logger.error(f"Claude Code generation error: {e}")
             return {
                 'success': False,
                 'error': str(e)
             }
-    
+
     async def refactor_code(self, code: str, language: str = "python",
                            refactor_type: str = "optimize") -> Dict[str, Any]:
         """Refactor code using Claude Code"""
         try:
             temp_file = Path(self.temp_dir) / f"refactor.{language}"
             temp_file.write_text(code)
-            
+
             cmd = [
                 self.claude_code_path,
                 'refactor',
@@ -157,15 +158,15 @@ class ClaudeCodeBridge:
                 '--type', refactor_type,
                 '--format', 'json'
             ]
-            
+
             process = await asyncio.create_subprocess_exec(
                 *cmd,
                 stdout=asyncio.subprocess.PIPE,
                 stderr=asyncio.subprocess.PIPE
             )
-            
+
             stdout, stderr = await process.communicate()
-            
+
             if process.returncode == 0:
                 result = json.loads(stdout.decode())
                 return {
@@ -180,21 +181,21 @@ class ClaudeCodeBridge:
                     'success': False,
                     'error': stderr.decode()
                 }
-                
+
         except Exception as e:
             logger.error(f"Claude Code refactor error: {e}")
             return {
                 'success': False,
                 'error': str(e)
             }
-    
+
     async def debug_code(self, code: str, error_message: str,
                         language: str = "python") -> Dict[str, Any]:
         """Debug code using Claude Code"""
         try:
             temp_file = Path(self.temp_dir) / f"debug.{language}"
             temp_file.write_text(code)
-            
+
             cmd = [
                 self.claude_code_path,
                 'debug',
@@ -202,15 +203,15 @@ class ClaudeCodeBridge:
                 '--error', error_message,
                 '--format', 'json'
             ]
-            
+
             process = await asyncio.create_subprocess_exec(
                 *cmd,
                 stdout=asyncio.subprocess.PIPE,
                 stderr=asyncio.subprocess.PIPE
             )
-            
+
             stdout, stderr = await process.communicate()
-            
+
             if process.returncode == 0:
                 result = json.loads(stdout.decode())
                 return {
@@ -225,14 +226,14 @@ class ClaudeCodeBridge:
                     'success': False,
                     'error': stderr.decode()
                 }
-                
+
         except Exception as e:
             logger.error(f"Claude Code debug error: {e}")
             return {
                 'success': False,
                 'error': str(e)
             }
-    
+
     def _basic_analysis(self, code: str, language: str) -> Dict[str, Any]:
         """Fallback basic analysis when Claude Code is unavailable"""
         lines = code.split('\n')
@@ -243,7 +244,7 @@ class ClaudeCodeBridge:
             'classes': len([line for line in lines if 'class ' in line]),
             'comments': len([line for line in lines if line.strip().startswith('#')])
         }
-    
+
     async def health_check(self) -> Dict[str, Any]:
         """Check if Claude Code bridge is working"""
         try:
@@ -253,9 +254,9 @@ class ClaudeCodeBridge:
                 stdout=asyncio.subprocess.PIPE,
                 stderr=asyncio.subprocess.PIPE
             )
-            
+
             stdout, stderr = await process.communicate()
-            
+
             if process.returncode == 0:
                 version = stdout.decode().strip()
                 return {
@@ -268,13 +269,13 @@ class ClaudeCodeBridge:
                     'status': 'unhealthy',
                     'error': stderr.decode()
                 }
-                
+
         except Exception as e:
             return {
                 'status': 'unavailable',
                 'error': str(e)
             }
-    
+
     def __del__(self):
         """Cleanup temporary directory"""
         try:

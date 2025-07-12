@@ -1,0 +1,44 @@
+Self-Prompt: Thorough Testing for Removal of GITHUB_TOKEN in github_codex_bridge.py
+
+Objective:
+- Verify that github_codex_bridge.py no longer uses the GITHUB_TOKEN environment variable.
+- Ensure the bridge service functions correctly without the token.
+- Confirm that GitHub API calls made by this bridge authenticate properly or handle missing tokens gracefully.
+
+Testing Steps:
+
+1. Code Review
+- Confirm the github_codex_bridge.py code does not read or use GITHUB_TOKEN.
+- Check for fallback or error handling when token is missing.
+
+2. Unit Tests
+- Run existing unit tests for github_codex_bridge.py.
+- Add tests to simulate missing or empty token scenarios.
+- Verify expected behavior (e.g., error messages, alternative auth).
+
+3. Integration Tests
+- Test bridge service interactions with GitHub API without GITHUB_TOKEN.
+- Confirm API calls succeed if possible or fail gracefully.
+
+4. Environment Verification
+- Ensure no GITHUB_TOKEN environment variable is set during tests.
+- Confirm bridge service does not rely on environment token.
+
+5. CI/CD Pipeline
+- Check CI/CD workflows for any references to GITHUB_TOKEN.
+- Run pipeline to verify no failures related to token removal.
+
+6. Logging and Monitoring
+- Review logs for authentication errors or warnings.
+- Confirm no unexpected failures due to missing token.
+
+7. Documentation
+- Update documentation to reflect token removal.
+- Note any changes in authentication requirements.
+
+Deliverables:
+- Test reports covering all above steps.
+- Updated or new test cases.
+- Documentation updates.
+
+This self-prompt guides thorough testing to ensure robust removal of GITHUB_TOKEN usage in github_codex_bridge.py.

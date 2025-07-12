@@ -86,23 +86,26 @@ jobs:
         pip install -r requirements.txt
         pip install pytest pytest-asyncio pytest-cov
 
-    - name: Run Python tests
-      env:
-        DATABASE_URL: postgresql://postgres:postgres@localhost:5432/test_db
-        REDIS_URL: redis://localhost:6379/0
+    - name: Install coverage.py
+      run: pip install coverage
+
+    - name: Run tests with coverage
       run: |
-        python -m pytest --cov=src --cov-report=xml --cov-report=html
+        coverage run -m pytest
+        coverage report
+        coverage xml
+
+    - name: Upload coverage to Codecov
+      uses: codecov/codecov-action@v4
+      with:
+        file: ./coverage.xml
+        token: ${{ secrets.CODECOV_TOKEN }}
 
     - name: Upload test results
       uses: actions/upload-artifact@v4
       with:
         name: test-results
         path: htmlcov/
-
-    - name: Upload coverage reports
-      uses: codecov/codecov-action@v3
-      with:
-        file: ./coverage.xml
 
   # Security Scanning
   security-scan:
@@ -178,7 +181,8 @@ jobs:
   deploy-dev:
     needs: docker-build
     runs-on: ubuntu-latest
-    environment: development
+    environment:
+      name: development
     if: github.ref == 'refs/heads/develop'
     steps:
     - name: Checkout code

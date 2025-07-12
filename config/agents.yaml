@@ -1,0 +1,21 @@
+agents:
+  gemini:
+    module: src.models.agent
+    class: Agent
+    params:
+      description: "Google Gemini AI agent"
+  claude:
+    module: src.models.agent
+    class: Agent
+    params:
+      description: "Anthropic Claude AI agent"
+  openai:
+    module: src.models.agent
+    class: Agent
+    params:
+      description: "OpenAI GPT agent"
+  blackbox:
+    module: src.models.agent
+    class: Agent
+    params:
+      description: "Blackbox AI agent"

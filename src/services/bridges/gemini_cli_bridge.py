@@ -12,21 +12,26 @@ from pathlib import Path
 import tempfile
 import os
 
+# Constants
+MILLISECONDS_PER_SECOND = 1000
+
+
 logger = logging.getLogger(__name__)
 
 class GeminiCliBridge:
     """Bridge service to Google Gemini CLI"""
-    
+
     def __init__(self):
+        """  Init   with enhanced functionality."""
         self.setup_complete = False
         self.temp_dir = tempfile.mkdtemp(prefix="gemini_bridge_")
-        
+
     async def setup_gemini_cli(self) -> Dict[str, Any]:
         """Setup Gemini CLI if not already installed"""
         try:
             # Check if gemini CLI is available
             check_result = await self._run_command(['npx', 'gemini-cli', '--version'])
-            
+
             if check_result['success']:
                 self.setup_complete = True
                 return {
@@ -34,13 +39,13 @@ class GeminiCliBridge:
                     'message': 'Gemini CLI already available',
                     'version': check_result['output']
                 }
-            
+
             # Install gemini CLI
             logger.info("Installing Gemini CLI...")
             install_result = await self._run_command([
                 'npm', 'install', '-g', '@google-ai/generativelanguage'
             ])
-            
+
             if install_result['success']:
                 self.setup_complete = True
                 return {
@@ -52,27 +57,27 @@ class GeminiCliBridge:
                     'success': False,
                     'error': f"Failed to install Gemini CLI: {install_result['error']}"
                 }
-                
+
         except Exception as e:
             logger.error(f"Gemini CLI setup error: {e}")
             return {
                 'success': False,
                 'error': str(e)
             }
-    
+
     async def generate_text(self, prompt: str, model: str = "gemini-pro",
-                           temperature: float = 0.7, max_tokens: int = 1000) -> Dict[str, Any]:
+                           temperature: float = 0.7, max_tokens: int = MILLISECONDS_PER_SECOND) -> Dict[str, Any]:
         """Generate text using Gemini CLI"""
         try:
             if not self.setup_complete:
                 setup_result = await self.setup_gemini_cli()
                 if not setup_result['success']:
                     return setup_result
-            
+
             # Create prompt file
             prompt_file = Path(self.temp_dir) / "prompt.txt"
             prompt_file.write_text(prompt)
-            
+
             cmd = [
                 'npx', 'gemini-cli',
                 'generate',
@@ -82,9 +87,9 @@ class GeminiCliBridge:
                 '--max-tokens', str(max_tokens),
                 '--format', 'json'
             ]
-            
+
             result = await self._run_command(cmd)
-            
+
             if result['success']:
                 try:
                     response = json.loads(result['output'])
@@ -106,25 +111,25 @@ class GeminiCliBridge:
                     'success': False,
                     'error': result['error']
                 }
-                
+
         except Exception as e:
             logger.error(f"Gemini text generation error: {e}")
             return {
                 'success': False,
                 'error': str(e)
             }
-    
+
     async def analyze_code(self, code: str, language: str = "python",
                           analysis_type: str = "quality") -> Dict[str, Any]:
         """Analyze code using Gemini CLI"""
         try:
             prompt = f"""
             Analyze this {language} code for {analysis_type}:
-            
+
             ```{language}
             {code}
             ```
-            
+
             Provide analysis in JSON format with:
             - quality_score (0-100)
             - issues: [{{type, severity, line, message}}]
@@ -132,13 +137,13 @@ class GeminiCliBridge:
             - complexity: {{cyclomatic, cognitive, maintainability}}
             - security: [{{severity, issue, recommendation}}]
             """
-            
+
             result = await self.generate_text(
                 prompt=prompt,
                 model="gemini-pro",
                 temperature=0.3
             )
-            
+
             if result['success']:
                 try:
                     # Try to extract JSON from response
@@ -149,7 +154,7 @@ class GeminiCliBridge:
                         json_text = text[json_start:json_end].strip()
                     else:
                         json_text = text
-                    
+
                     analysis = json.loads(json_text)
                     return {
                         'success': True,
@@ -165,21 +170,21 @@ class GeminiCliBridge:
                     }
             else:
                 return result
-                
+
         except Exception as e:
             logger.error(f"Gemini code analysis error: {e}")
             return {
                 'success': False,
                 'error': str(e)
             }
-    
+
     async def generate_code(self, prompt: str, language: str = "python",
                            framework: str = "", style: str = "clean") -> Dict[str, Any]:
         """Generate code using Gemini CLI"""
         try:
             enhanced_prompt = f"""
             Generate {language} code for: {prompt}
-            
+
             Requirements:
             - Language: {language}
             - Framework: {framework if framework else 'standard library'}
@@ -187,7 +192,7 @@ class GeminiCliBridge:
             - Include comments and documentation
             - Follow best practices
             - Add error handling
-            
+
             Provide response in JSON format:
             {{
                 "code": "generated code here",
@@ -197,13 +202,13 @@ class GeminiCliBridge:
                 "tests": "example tests"
             }}
             """
-            
+
             result = await self.generate_text(
                 prompt=enhanced_prompt,
                 model="gemini-pro",
                 temperature=0.5
             )
-            
+
             if result['success']:
                 try:
                     text = result['text']
@@ -213,7 +218,7 @@ class GeminiCliBridge:
                         json_text = text[json_start:json_end].strip()
                     else:
                         json_text = text
-                    
+
                     code_result = json.loads(json_text)
                     return {
                         'success': True,
@@ -245,31 +250,31 @@ class GeminiCliBridge:
                         }
             else:
                 return result
-                
+
         except Exception as e:
             logger.error(f"Gemini code generation error: {e}")
             return {
                 'success': False,
                 'error': str(e)
             }
-    
+
     async def optimize_code(self, code: str, language: str = "python",
                            optimization_type: str = "performance") -> Dict[str, Any]:
         """Optimize code using Gemini CLI"""
         try:
             prompt = f"""
             Optimize this {language} code for {optimization_type}:
-            
+
             ```{language}
             {code}
             ```
-            
+
             Provide optimized version with:
             - Improved performance
             - Better memory usage
             - Enhanced readability
             - Modern best practices
-            
+
             Response format:
             {{
                 "optimized_code": "optimized code here",
@@ -278,13 +283,13 @@ class GeminiCliBridge:
                 "explanation": "detailed explanation of changes"
             }}
             """
-            
+
             result = await self.generate_text(
                 prompt=prompt,
                 model="gemini-pro",
                 temperature=0.3
             )
-            
+
             if result['success']:
                 try:
                     text = result['text']
@@ -294,7 +299,7 @@ class GeminiCliBridge:
                         json_text = text[json_start:json_end].strip()
                     else:
                         json_text = text
-                    
+
                     optimization = json.loads(json_text)
                     return {
                         'success': True,
@@ -313,14 +318,14 @@ class GeminiCliBridge:
                     }
             else:
                 return result
-                
+
         except Exception as e:
             logger.error(f"Gemini code optimization error: {e}")
             return {
                 'success': False,
                 'error': str(e)
             }
-    
+
     async def _run_command(self, cmd: List[str]) -> Dict[str, Any]:
         """Run command asynchronously"""
         try:
@@ -329,9 +334,9 @@ class GeminiCliBridge:
                 stdout=asyncio.subprocess.PIPE,
                 stderr=asyncio.subprocess.PIPE
             )
-            
+
             stdout, stderr = await process.communicate()
-            
+
             if process.returncode == 0:
                 return {
                     'success': True,
@@ -344,18 +349,18 @@ class GeminiCliBridge:
                     'error': stderr.decode().strip(),
                     'returncode': process.returncode
                 }
-                
+
         except Exception as e:
             return {
                 'success': False,
                 'error': str(e)
             }
-    
+
     async def health_check(self) -> Dict[str, Any]:
         """Check if Gemini CLI bridge is working"""
         try:
             result = await self._run_command(['npx', 'gemini-cli', '--help'])
-            
+
             if result['success']:
                 return {
                     'status': 'healthy',
@@ -368,14 +373,14 @@ class GeminiCliBridge:
                     'error': result['error'],
                     'setup_complete': self.setup_complete
                 }
-                
+
         except Exception as e:
             return {
                 'status': 'unavailable',
                 'error': str(e),
                 'setup_complete': self.setup_complete
             }
-    
+
     def __del__(self):
         """Cleanup temporary directory"""
         try:

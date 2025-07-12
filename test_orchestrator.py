@@ -14,79 +14,79 @@ from services.ai_providers_simple import orchestrator
 
 async def test_orchestrator():
     """Test the SDLC orchestrator with different collaboration paradigms"""
-    
-    print("SDLC Orchestrator Test Suite")
-    print("=" * 50)
-    
+
+    logger.info("SDLC Orchestrator Test Suite")
+    logger.info("=" * 50)
+
     # Test Task: Create a simple web API
     test_task = "Create a REST API for a todo list application with CRUD operations"
     test_agents = ['gemini', 'claude', 'openai']
-    
+
     paradigms = [
         'orchestra',
-        'mesh', 
+        'mesh',
         'swarm',
         'weaver',
         'ecosystem'
     ]
-    
+
     for paradigm in paradigms:
-        print(f"\nTesting {paradigm.upper()} Paradigm")
-        print("-" * 40)
-        
+        logger.info(f"\nTesting {paradigm.upper()} Paradigm")
+        logger.info("-" * 40)
+
         try:
             session_id = f"test_{paradigm}"
             result = await orchestrator.collaborate(
                 session_id=session_id,
-                paradigm=paradigm, 
+                paradigm=paradigm,
                 task=test_task,
                 agents=test_agents
             )
-            
-            print(f"Success: {result['paradigm']}")
-            print(f"Task: {result['task']}")
-            print(f"Agents: {', '.join(result['agents'])}")
-            
+
+            logger.info(f"Success: {result['paradigm']}")
+            logger.info(f"Task: {result['task']}")
+            logger.info(f"Agents: {', '.join(result['agents'])}")
+
             if 'conductor_guidance' in result:
-                print(f"Conductor: {result['conductor_guidance'][:100]}...")
+                logger.info(f"Conductor: {result['conductor_guidance'][:100]}...")
             if 'conversations' in result:
-                print(f"Conversations: {len(result['conversations'])} exchanges")
+                logger.info(f"Conversations: {len(result['conversations'])} exchanges")
             if 'emergent_patterns' in result:
-                print(f"Emergent Patterns: Available")
+                logger.info(f"Emergent Patterns: Available")
             if 'context_analysis' in result:
-                print(f"Context Analysis: Available")
+                logger.info(f"Context Analysis: Available")
             if 'emergent_synthesis' in result:
-                print(f"Ecosystem Evolution: Available")
-                
+                logger.info(f"Ecosystem Evolution: Available")
+
         except Exception as e:
-            print(f"Error in {paradigm}: {e}")
-    
-    print(f"\nTesting Bridge Services")
-    print("-" * 40)
-    
+            logger.info(f"Error in {paradigm}: {e}")
+
+    logger.info(f"\nTesting Bridge Services")
+    logger.info("-" * 40)
+
     # Test bridge initialization
     bridge_result = await orchestrator.initialize_bridges()
     if bridge_result['success']:
-        print("Bridge services initialized successfully")
-        
+        logger.info("Bridge services initialized successfully")
+
         # Test enhanced code generation
         code_result = await orchestrator.generate_code_with_bridges(
             "Create a Python function to validate email addresses",
             language="python",
             paradigm="orchestra"
         )
-        print(f"Enhanced Code Generation: {code_result.get('success', False)}")
-        
+        logger.info(f"Enhanced Code Generation: {code_result.get('success', False)}")
+
     else:
-        print(f"Bridge services: {bridge_result.get('error', 'Not available')}")
-    
-    print(f"\nOrchestrator Status")
-    print("-" * 40)
-    print(f"Active Sessions: {len(orchestrator.active_sessions)}")
-    print(f"Available Providers: {list(orchestrator.providers.keys())}")
-    print(f"Bridge Enhanced: {orchestrator.bridge_initialized}")
+        logger.info(f"Bridge services: {bridge_result.get('error', 'Not available')}")
+
+    logger.info(f"\nOrchestrator Status")
+    logger.info("-" * 40)
+    logger.info(f"Active Sessions: {len(orchestrator.active_sessions)}")
+    logger.info(f"Available Providers: {list(orchestrator.providers.keys())}")
+    logger.info(f"Bridge Enhanced: {orchestrator.bridge_initialized}")
 
 if __name__ == "__main__":
-    print("Starting SDLC Orchestrator Test...")
+    logger.info("Starting SDLC Orchestrator Test...")
     asyncio.run(test_orchestrator())
-    print("\nTest Complete!")
+    logger.info("\nTest Complete!")

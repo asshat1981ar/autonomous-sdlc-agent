@@ -5,6 +5,10 @@ import asyncio
 import json
 from datetime import datetime
 
+# Constants
+HTTP_INTERNAL_ERROR = 500
+
+
 collaboration_bp = Blueprint('collaboration', __name__)
 
 @collaboration_bp.route('/paradigms', methods=['GET'])
@@ -87,12 +91,12 @@ def create_session():
         name = data.get('name', 'Untitled Session')
         paradigm = data.get('paradigm', 'orchestra')
         selected_agents = data.get('agents', ['gemini', 'claude'])
-        
+
         # Create session in database
         session = Session(name=name, paradigm=paradigm)
         db.session.add(session)
         db.session.commit()
-        
+
         # Create session in orchestrator (simplified)
         session_id = f"session_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
         orchestrator.active_sessions[session_id] = {
@@ -100,14 +104,14 @@ def create_session():
             'agents': selected_agents,
             'created_at': datetime.now().isoformat()
         }
-        
+
         return jsonify({
             'success': True,
             'session': session.to_dict(),
             'orchestrator_session_id': session_id
         })
     except Exception as e:
-        return jsonify({'success': False, 'error': str(e)}), 500
+        return jsonify({'success': False, 'error': str(e)}), HTTP_INTERNAL_ERROR
 
 @collaboration_bp.route('/sessions', methods=['GET'])
 def get_sessions():
@@ -121,7 +125,7 @@ def get_session(session_id):
     session = Session.query.get_or_404(session_id)
     tasks = Task.query.filter_by(session_id=session_id).all()
     collaborations = Collaboration.query.filter_by(session_id=session_id).all()
-    
+
     return jsonify({
         'session': session.to_dict(),
         'tasks': [task.to_dict() for task in tasks],
@@ -136,10 +140,10 @@ def collaborate():
         session_id = data.get('session_id')
         task_description = data.get('task', '')
         paradigm = data.get('paradigm', 'orchestra')
-        
+
         if not task_description:
             return jsonify({'success': False, 'error': 'Task description is required'}), 400
-        
+
         # Create task record
         task = Task(
             session_id=session_id,
@@ -149,23 +153,23 @@ def collaborate():
         )
         db.session.add(task)
         db.session.commit()
-        
+
         # Execute collaboration
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)
-        
+
         orchestrator_session_id = f"session_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
         result = loop.run_until_complete(
             orchestrator.collaborate(orchestrator_session_id, paradigm, task_description, data.get('agents', ['gemini', 'claude']))
         )
         loop.close()
-        
+
         # Update task with results
         task.code_output = json.dumps(result, indent=2)
         task.status = 'completed'
         task.completed_at = datetime.utcnow()
         db.session.commit()
-        
+
         # Record collaboration
         collaboration = Collaboration(
             session_id=session_id,
@@ -175,15 +179,15 @@ def collaborate():
         )
         db.session.add(collaboration)
         db.session.commit()
-        
+
         return jsonify({
             'success': True,
             'task_id': task.id,
             'result': result
         })
-        
+
     except Exception as e:
-        return jsonify({'success': False, 'error': str(e)}), 500
+        return jsonify({'success': False, 'error': str(e)}), HTTP_INTERNAL_ERROR
 
 @collaboration_bp.route('/tasks/<int:task_id>', methods=['GET'])
 def get_task(task_id):
@@ -199,18 +203,18 @@ def demo_collaboration():
         paradigm = data.get('paradigm', 'orchestra')
         task = data.get('task', 'Create a simple Python function')
         agents = data.get('agents', ['gemini', 'claude'])
-        
+
         # Execute demo collaboration
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)
-        
+
         session_id = f"demo_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
-        
+
         result = loop.run_until_complete(
             orchestrator.collaborate(session_id, paradigm, task, agents)
         )
         loop.close()
-        
+
         return jsonify({
             'success': True,
             'paradigm': paradigm,
@@ -218,9 +222,9 @@ def demo_collaboration():
             'agents': agents,
             'result': result
         })
-        
+
     except Exception as e:
-        return jsonify({'success': False, 'error': str(e)}), 500
+        return jsonify({'success': False, 'error': str(e)}), HTTP_INTERNAL_ERROR
 
 @collaboration_bp.route('/health', methods=['GET'])
 def health_check():

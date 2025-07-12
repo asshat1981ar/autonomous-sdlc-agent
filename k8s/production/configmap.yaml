@@ -1,0 +1,304 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: autonomous-sdlc-config
+  namespace: production
+  labels:
+    app: autonomous-sdlc
+    environment: production
+data:
+  # Application Configuration
+  APP_NAME: "Autonomous SDLC Agent"
+  APP_VERSION: "1.0.0"
+  ENVIRONMENT: "production"
+  DEBUG: "false"
+  LOG_LEVEL: "INFO"
+  
+  # Server Configuration
+  HOST: "0.0.0.0"
+  PORT: "8000"
+  WORKERS: "4"
+  WORKER_TIMEOUT: "300"
+  KEEPALIVE: "2"
+  
+  # Database Configuration
+  DATABASE_POOL_SIZE: "20"
+  DATABASE_MAX_OVERFLOW: "10"
+  DATABASE_POOL_TIMEOUT: "30"
+  DATABASE_POOL_RECYCLE: "3600"
+  
+  # Redis Configuration
+  REDIS_MAX_CONNECTIONS: "100"
+  REDIS_RETRY_ON_TIMEOUT: "true"
+  REDIS_SOCKET_KEEPALIVE: "true"
+  REDIS_SOCKET_KEEPALIVE_OPTIONS: "1,3,5"
+  
+  # A2A Framework Configuration
+  A2A_MAX_AGENTS: "50"
+  A2A_COLLABORATION_TIMEOUT: "1800"
+  A2A_MESSAGE_QUEUE_SIZE: "1000"
+  A2A_HEARTBEAT_INTERVAL: "30"
+  A2A_KNOWLEDGE_SYNC_INTERVAL: "300"
+  
+  # AI Provider Configuration
+  AI_PROVIDER_TIMEOUT: "120"
+  AI_PROVIDER_MAX_RETRIES: "3"
+  AI_PROVIDER_RETRY_DELAY: "5"
+  OPENAI_MAX_TOKENS: "4096"
+  ANTHROPIC_MAX_TOKENS: "4096"
+  GOOGLE_MAX_TOKENS: "4096"
+  BLACKBOX_MAX_TOKENS: "4096"
+  
+  # Performance Configuration
+  MAX_CONCURRENT_TASKS: "100"
+  TASK_TIMEOUT: "3600"
+  MEMORY_LIMIT_PER_TASK: "2Gi"
+  CPU_LIMIT_PER_TASK: "2000m"
+  
+  # Security Configuration
+  SESSION_TIMEOUT: "3600"
+  JWT_EXPIRATION: "86400"
+  RATE_LIMIT_REQUESTS: "1000"
+  RATE_LIMIT_WINDOW: "3600"
+  CORS_ORIGINS: "https://autonomous-sdlc.com,https://app.autonomous-sdlc.com"
+  
+  # Monitoring Configuration
+  METRICS_ENABLED: "true"
+  METRICS_PORT: "8080"
+  HEALTH_CHECK_INTERVAL: "30"
+  PROMETHEUS_MULTIPROC_DIR: "/tmp/prometheus"
+  
+  # Logging Configuration
+  LOG_FORMAT: "json"
+  LOG_ROTATION: "daily"
+  LOG_RETENTION_DAYS: "30"
+  LOG_MAX_SIZE: "100MB"
+  
+  # Feature Flags
+  ENABLE_A2A_FRAMEWORK: "true"
+  ENABLE_SELF_LEARNING: "true"
+  ENABLE_KNOWLEDGE_SHARING: "true"
+  ENABLE_AUTO_SCALING: "true"
+  ENABLE_ADVANCED_ANALYTICS: "true"
+  
+  # Backup Configuration
+  BACKUP_ENABLED: "true"
+  BACKUP_INTERVAL: "21600"  # 6 hours
+  BACKUP_RETENTION_DAYS: "30"
+  BACKUP_S3_BUCKET: "autonomous-sdlc-backups"
+  
+  # Notification Configuration
+  SLACK_NOTIFICATIONS: "true"
+  EMAIL_NOTIFICATIONS: "true"
+  WEBHOOK_NOTIFICATIONS: "true"
+  
+  # Development Configuration
+  CODE_GENERATION_TIMEOUT: "300"
+  MAX_CODE_SIZE: "1MB"
+  ALLOWED_FILE_TYPES: ".py,.js,.ts,.jsx,.tsx,.java,.go,.rs,.cpp,.c,.h,.yaml,.yml,.json,.md"
+  
+  # Integration Configuration
+  GITHUB_INTEGRATION: "true"
+  GITLAB_INTEGRATION: "true"
+  BITBUCKET_INTEGRATION: "true"
+  JIRA_INTEGRATION: "true"
+  SLACK_INTEGRATION: "true"
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: fluent-bit-config
+  namespace: production
+  labels:
+    app: fluent-bit
+    environment: production
+data:
+  fluent-bit.conf: |
+    [SERVICE]
+        Flush         1
+        Log_Level     info
+        Daemon        off
+        Parsers_File  parsers.conf
+        HTTP_Server   On
+        HTTP_Listen   0.0.0.0
+        HTTP_Port     2020
+
+    [INPUT]
+        Name              tail
+        Path              /app/logs/*.log
+        Parser            json
+        Tag               app.*
+        Refresh_Interval  5
+        Mem_Buf_Limit     50MB
+
+    [FILTER]
+        Name                kubernetes
+        Match               app.*
+        Kube_URL            https://kubernetes.default.svc:443
+        Kube_CA_File        /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
+        Kube_Token_File     /var/run/secrets/kubernetes.io/serviceaccount/token
+        Kube_Tag_Prefix     app.var.log.containers.
+        Merge_Log           On
+        Keep_Log            Off
+        K8S-Logging.Parser  On
+        K8S-Logging.Exclude On
+
+    [OUTPUT]
+        Name  cloudwatch_logs
+        Match app.*
+        region us-west-2
+        log_group_name /aws/eks/autonomous-sdlc-production
+        log_stream_prefix autonomous-sdlc-
+        auto_create_group On
+
+  parsers.conf: |
+    [PARSER]
+        Name        json
+        Format      json
+        Time_Key    timestamp
+        Time_Format %Y-%m-%dT%H:%M:%S.%L
+        Time_Keep   On
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: nginx-config
+  namespace: production
+  labels:
+    app: nginx
+    environment: production
+data:
+  nginx.conf: |
+    user nginx;
+    worker_processes auto;
+    error_log /var/log/nginx/error.log warn;
+    pid /var/run/nginx.pid;
+
+    events {
+        worker_connections 1024;
+        use epoll;
+        multi_accept on;
+    }
+
+    http {
+        include /etc/nginx/mime.types;
+        default_type application/octet-stream;
+
+        log_format main '$remote_addr - $remote_user [$time_local] "$request" '
+                        '$status $body_bytes_sent "$http_referer" '
+                        '"$http_user_agent" "$http_x_forwarded_for"';
+
+        access_log /var/log/nginx/access.log main;
+
+        sendfile on;
+        tcp_nopush on;
+        tcp_nodelay on;
+        keepalive_timeout 65;
+        types_hash_max_size 2048;
+        client_max_body_size 100M;
+
+        gzip on;
+        gzip_vary on;
+        gzip_min_length 1000;
+        gzip_proxied any;
+        gzip_comp_level 6;
+        gzip_types
+            text/plain
+            text/css
+            text/xml
+            text/javascript
+            application/json
+            application/javascript
+            application/xml+rss
+            application/atom+xml
+            image/svg+xml;
+
+        upstream api_backend {
+            least_conn;
+            server autonomous-sdlc-api:80 max_fails=3 fail_timeout=30s;
+            keepalive 32;
+        }
+
+        server {
+            listen 80;
+            server_name autonomous-sdlc.com;
+
+            location /health {
+                access_log off;
+                return 200 "healthy\n";
+                add_header Content-Type text/plain;
+            }
+
+            location /api/ {
+                proxy_pass http://api_backend;
+                proxy_set_header Host $host;
+                proxy_set_header X-Real-IP $remote_addr;
+                proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+                proxy_set_header X-Forwarded-Proto $scheme;
+                proxy_http_version 1.1;
+                proxy_set_header Connection "";
+                proxy_connect_timeout 30s;
+                proxy_send_timeout 300s;
+                proxy_read_timeout 300s;
+                proxy_buffering off;
+            }
+
+            location / {
+                root /usr/share/nginx/html;
+                index index.html index.htm;
+                try_files $uri $uri/ /index.html;
+                expires 1h;
+                add_header Cache-Control "public, immutable";
+            }
+
+            location ~* \.(js|css|png|jpg|jpeg|gif|ico|svg)$ {
+                root /usr/share/nginx/html;
+                expires 1y;
+                add_header Cache-Control "public, immutable";
+            }
+        }
+    }
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: postgresql-config
+  namespace: production
+  labels:
+    app: postgresql
+    environment: production
+data:
+  postgresql.conf: |
+    # Connection settings
+    max_connections = 200
+    shared_buffers = 256MB
+    effective_cache_size = 1GB
+    maintenance_work_mem = 64MB
+    checkpoint_completion_target = 0.9
+    wal_buffers = 16MB
+    default_statistics_target = 100
+    random_page_cost = 1.1
+    effective_io_concurrency = 200
+    work_mem = 4MB
+    min_wal_size = 1GB
+    max_wal_size = 4GB
+    
+    # Logging
+    log_destination = 'stderr'
+    logging_collector = on
+    log_directory = 'log'
+    log_filename = 'postgresql-%Y-%m-%d_%H%M%S.log'
+    log_rotation_age = 1d
+    log_rotation_size = 100MB
+    log_min_duration_statement = 1000
+    log_checkpoints = on
+    log_connections = on
+    log_disconnections = on
+    log_lock_waits = on
+    log_temp_files = 0
+    log_autovacuum_min_duration = 0
+    
+    # Performance
+    shared_preload_libraries = 'pg_stat_statements'
+    track_activity_query_size = 2048
+    pg_stat_statements.track = all

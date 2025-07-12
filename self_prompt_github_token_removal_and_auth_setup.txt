@@ -1,0 +1,44 @@
+Self-Prompt: Systematic and Semantic Approach to Remove GITHUB_TOKEN and Setup GitHub CLI Authentication on Ubuntu
+
+Objective:
+- Ensure complete removal of GITHUB_TOKEN environment variable references from all project files and environment.
+- Setup GitHub CLI authentication (gh auth login) on Ubuntu to store credentials securely.
+- Perform thorough testing to verify removal and authentication setup.
+
+Steps:
+
+1. Recursive Search and Removal
+- Recursively search all project files and environment configurations for any references to GITHUB_TOKEN.
+- Remove or sanitize any found references, including .env files, shell scripts, CI/CD workflows, Docker/Kubernetes configs.
+- Verify no residual references remain.
+
+2. Environment Cleanup
+- Unset GITHUB_TOKEN environment variable in all relevant shell profiles (.bashrc, .profile, .zshrc).
+- Remove any exported or set commands related to GITHUB_TOKEN.
+
+3. GitHub CLI Authentication Setup on Ubuntu
+- Install GitHub CLI if not already installed.
+- Run `gh auth login` interactively to authenticate and store credentials.
+- Verify authentication status with `gh auth status`.
+
+4. Testing
+- Verify no GITHUB_TOKEN environment variable is set in the shell.
+- Confirm GitHub CLI uses stored credentials for authentication.
+- Test GitHub CLI commands (e.g., `gh repo list`, `gh issue list`) to ensure proper authentication.
+- Check CI/CD pipelines and scripts to confirm no reliance on GITHUB_TOKEN environment variable.
+
+5. Documentation and Scripts
+- Document the removal and setup process.
+- Provide scripts to automate environment cleanup and GitHub CLI authentication setup.
+
+6. Continuous Monitoring
+- Add checks in CI/CD to prevent usage of GITHUB_TOKEN environment variable.
+- Monitor authentication failures related to token usage.
+
+Deliverables:
+- Cleaned project with no GITHUB_TOKEN references.
+- Scripts for environment cleanup and GitHub CLI setup.
+- Documentation of the process.
+- Test reports confirming successful removal and authentication.
+
+This self-prompt guides the systematic and semantic approach to fully address the task.

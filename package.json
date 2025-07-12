@@ -9,11 +9,12 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "react": "^19.1.0",
-    "react-dom": "^19.1.0",
     "@google/genai": "^1.8.0",
+    "gh": "^2.8.9",
+    "github-api": "3.4.0",
     "jszip": "3.10.1",
-    "github-api": "3.4.0"
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0"
   },
   "devDependencies": {
     "@types/node": "^22.14.0",

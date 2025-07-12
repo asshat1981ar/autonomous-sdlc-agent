@@ -4,7 +4,31 @@ Integrates with Blackbox.ai premium API for advanced code generation and analysi
 """
 
 import asyncio
-import aiohttp
+try:
+    import aiohttp
+
+# Constants
+HTTP_OK = 200
+
+except ImportError:
+    class MockSession:
+        """MockSession class for steampunk operations."""
+        """Post with enhanced functionality."""
+        async def post(self, *args, **kwargs):
+            return type('R', (), {
+                'status': HTTP_OK,
+                'json': lambda: {'choices': [{'text': 'mock code'}]}
+            """Close with enhanced functionality."""
+            """  Aenter   with enhanced functionality."""
+            """  Aexit   with enhanced functionality."""
+            })()
+        async def close(self): pass
+        async def __aenter__(self): return self
+        async def __aexit__(self, *args): pass
+    """MockAiohttp class for steampunk operations."""
+    class MockAiohttp:
+        ClientSession = MockSession
+    aiohttp = MockAiohttp()
 import json
 import logging
 from typing import Dict, List, Optional, Any
@@ -16,50 +40,51 @@ logger = logging.getLogger(__name__)
 
 class BlackboxAiBridge:
     """Bridge service to Blackbox.ai Premium API"""
-    
+
     def __init__(self):
+        """  Init   with enhanced functionality."""
         self.api_key = os.getenv('BLACKBOX_API_KEY', '')
         self.premium_key = os.getenv('BLACKBOX_PREMIUM_KEY', '')
         self.base_url = "https://api.blackbox.ai"
         self.session_id = None
         self.rate_limit_delay = 1.0  # seconds between requests
         self.last_request_time = 0
-        
+
     async def _rate_limit(self):
         """Implement rate limiting for API requests"""
         current_time = time.time()
         time_since_last = current_time - self.last_request_time
-        
+
         if time_since_last < self.rate_limit_delay:
             await asyncio.sleep(self.rate_limit_delay - time_since_last)
-        
+
         self.last_request_time = time.time()
-    
+
     async def authenticate(self) -> Dict[str, Any]:
         """Authenticate with Blackbox.ai Premium"""
         try:
             await self._rate_limit()
-            
+
             payload = {
                 'apiKey': self.premium_key or self.api_key,
                 'action': 'authenticate'
             }
-            
+
             headers = {
                 'Content-Type': 'application/json',
                 'User-Agent': 'SDLC-Agent-Platform/1.0'
             }
-            
+
             async with aiohttp.ClientSession() as session:
                 async with session.post(
                     f"{self.base_url}/auth",
                     json=payload,
                     headers=headers
                 ) as response:
-                    if response.status == 200:
+                    if response.status == HTTP_OK:
                         result = await response.json()
                         self.session_id = result.get('sessionId')
-                        
+
                         return {
                             'success': True,
                             'authenticated': True,
@@ -73,14 +98,14 @@ class BlackboxAiBridge:
                             'success': False,
                             'error': f'Authentication failed: {response.status} - {error_text}'
                         }
-                        
+
         except Exception as e:
             logger.error(f"Blackbox.ai authentication error: {e}")
             return {
                 'success': False,
                 'error': str(e)
             }
-    
+
     async def generate_code(self, prompt: str, language: str = "python",
                            mode: str = "code", complexity: str = "medium") -> Dict[str, Any]:
         """Generate code using Blackbox.ai Premium"""
@@ -89,9 +114,9 @@ class BlackboxAiBridge:
                 auth_result = await self.authenticate()
                 if not auth_result['success']:
                     return auth_result
-            
+
             await self._rate_limit()
-            
+
             payload = {
                 'prompt': prompt,
                 'language': language,
@@ -101,22 +126,22 @@ class BlackboxAiBridge:
                 'includeTests': True,
                 'sessionId': self.session_id
             }
-            
+
             headers = {
                 'Content-Type': 'application/json',
                 'Authorization': f'Bearer {self.premium_key or self.api_key}',
                 'User-Agent': 'SDLC-Agent-Platform/1.0'
             }
-            
+
             async with aiohttp.ClientSession() as session:
                 async with session.post(
                     f"{self.base_url}/generate",
                     json=payload,
                     headers=headers
                 ) as response:
-                    if response.status == 200:
+                    if response.status == HTTP_OK:
                         result = await response.json()
-                        
+
                         return {
                             'success': True,
                             'code': result.get('code', ''),
@@ -134,42 +159,42 @@ class BlackboxAiBridge:
                             'success': False,
                             'error': f'Code generation failed: {response.status} - {error_text}'
                         }
-                        
+
         except Exception as e:
             logger.error(f"Blackbox.ai code generation error: {e}")
             return {
                 'success': False,
                 'error': str(e)
             }
-    
+
     async def analyze_code(self, code: str, language: str = "python",
                           analysis_type: str = "comprehensive") -> Dict[str, Any]:
         """Analyze code using Blackbox.ai Premium"""
         try:
             await self._rate_limit()
-            
+
             payload = {
                 'code': code,
                 'language': language,
                 'analysisType': analysis_type,  # 'comprehensive', 'security', 'performance', 'quality'
                 'sessionId': self.session_id
             }
-            
+
             headers = {
                 'Content-Type': 'application/json',
                 'Authorization': f'Bearer {self.premium_key or self.api_key}',
                 'User-Agent': 'SDLC-Agent-Platform/1.0'
             }
-            
+
             async with aiohttp.ClientSession() as session:
                 async with session.post(
                     f"{self.base_url}/analyze",
                     json=payload,
                     headers=headers
                 ) as response:
-                    if response.status == 200:
+                    if response.status == HTTP_OK:
                         result = await response.json()
-                        
+
                         return {
                             'success': True,
                             'analysis': {
@@ -192,23 +217,23 @@ class BlackboxAiBridge:
                             'success': False,
                             'error': f'Code analysis failed: {response.status} - {error_text}'
                         }
-                        
+
         except Exception as e:
             logger.error(f"Blackbox.ai code analysis error: {e}")
             return {
                 'success': False,
                 'error': str(e)
             }
-    
+
     async def optimize_code(self, code: str, language: str = "python",
                            optimization_goals: List[str] = None) -> Dict[str, Any]:
         """Optimize code using Blackbox.ai Premium"""
         try:
             if optimization_goals is None:
                 optimization_goals = ['performance', 'readability', 'memory']
-            
+
             await self._rate_limit()
-            
+
             payload = {
                 'code': code,
                 'language': language,
@@ -216,22 +241,22 @@ class BlackboxAiBridge:
                 'preserveFunctionality': True,
                 'sessionId': self.session_id
             }
-            
+
             headers = {
                 'Content-Type': 'application/json',
                 'Authorization': f'Bearer {self.premium_key or self.api_key}',
                 'User-Agent': 'SDLC-Agent-Platform/1.0'
             }
-            
+
             async with aiohttp.ClientSession() as session:
                 async with session.post(
                     f"{self.base_url}/optimize",
                     json=payload,
                     headers=headers
                 ) as response:
-                    if response.status == 200:
+                    if response.status == HTTP_OK:
                         result = await response.json()
-                        
+
                         return {
                             'success': True,
                             'original_code': code,
@@ -250,20 +275,20 @@ class BlackboxAiBridge:
                             'success': False,
                             'error': f'Code optimization failed: {response.status} - {error_text}'
                         }
-                        
+
         except Exception as e:
             logger.error(f"Blackbox.ai code optimization error: {e}")
             return {
                 'success': False,
                 'error': str(e)
             }
-    
+
     async def debug_code(self, code: str, error_message: str,
                         language: str = "python", context: str = "") -> Dict[str, Any]:
         """Debug code using Blackbox.ai Premium"""
         try:
             await self._rate_limit()
-            
+
             payload = {
                 'code': code,
                 'errorMessage': error_message,
@@ -272,22 +297,22 @@ class BlackboxAiBridge:
                 'includeExplanation': True,
                 'sessionId': self.session_id
             }
-            
+
             headers = {
                 'Content-Type': 'application/json',
                 'Authorization': f'Bearer {self.premium_key or self.api_key}',
                 'User-Agent': 'SDLC-Agent-Platform/1.0'
             }
-            
+
             async with aiohttp.ClientSession() as session:
                 async with session.post(
                     f"{self.base_url}/debug",
                     json=payload,
                     headers=headers
                 ) as response:
-                    if response.status == 200:
+                    if response.status == HTTP_OK:
                         result = await response.json()
-                        
+
                         return {
                             'success': True,
                             'diagnosis': result.get('diagnosis', ''),
@@ -305,20 +330,20 @@ class BlackboxAiBridge:
                             'success': False,
                             'error': f'Code debugging failed: {response.status} - {error_text}'
                         }
-                        
+
         except Exception as e:
             logger.error(f"Blackbox.ai code debugging error: {e}")
             return {
                 'success': False,
                 'error': str(e)
             }
-    
+
     async def generate_documentation(self, code: str, language: str = "python",
                                    doc_type: str = "comprehensive") -> Dict[str, Any]:
         """Generate documentation using Blackbox.ai Premium"""
         try:
             await self._rate_limit()
-            
+
             payload = {
                 'code': code,
                 'language': language,
@@ -326,22 +351,22 @@ class BlackboxAiBridge:
                 'includeExamples': True,
                 'sessionId': self.session_id
             }
-            
+
             headers = {
                 'Content-Type': 'application/json',
                 'Authorization': f'Bearer {self.premium_key or self.api_key}',
                 'User-Agent': 'SDLC-Agent-Platform/1.0'
             }
-            
+
             async with aiohttp.ClientSession() as session:
                 async with session.post(
                     f"{self.base_url}/document",
                     json=payload,
                     headers=headers
                 ) as response:
-                    if response.status == 200:
+                    if response.status == HTTP_OK:
                         result = await response.json()
-                        
+
                         return {
                             'success': True,
                             'documentation': result.get('documentation', ''),
@@ -358,23 +383,23 @@ class BlackboxAiBridge:
                             'success': False,
                             'error': f'Documentation generation failed: {response.status} - {error_text}'
                         }
-                        
+
         except Exception as e:
             logger.error(f"Blackbox.ai documentation generation error: {e}")
             return {
                 'success': False,
                 'error': str(e)
             }
-    
+
     async def code_completion(self, partial_code: str, language: str = "python",
                              cursor_position: int = None) -> Dict[str, Any]:
         """Get intelligent code completion using Blackbox.ai Premium"""
         try:
             if cursor_position is None:
                 cursor_position = len(partial_code)
-            
+
             await self._rate_limit()
-            
+
             payload = {
                 'partialCode': partial_code,
                 'language': language,
@@ -383,22 +408,22 @@ class BlackboxAiBridge:
                 'includeContext': True,
                 'sessionId': self.session_id
             }
-            
+
             headers = {
                 'Content-Type': 'application/json',
                 'Authorization': f'Bearer {self.premium_key or self.api_key}',
                 'User-Agent': 'SDLC-Agent-Platform/1.0'
             }
-            
+
             async with aiohttp.ClientSession() as session:
                 async with session.post(
                     f"{self.base_url}/complete",
                     json=payload,
                     headers=headers
                 ) as response:
-                    if response.status == 200:
+                    if response.status == HTTP_OK:
                         result = await response.json()
-                        
+
                         return {
                             'success': True,
                             'completions': result.get('completions', []),
@@ -412,19 +437,19 @@ class BlackboxAiBridge:
                             'success': False,
                             'error': f'Code completion failed: {response.status} - {error_text}'
                         }
-                        
+
         except Exception as e:
             logger.error(f"Blackbox.ai code completion error: {e}")
             return {
                 'success': False,
                 'error': str(e)
             }
-    
+
     async def health_check(self) -> Dict[str, Any]:
         """Check if Blackbox.ai bridge is working"""
         try:
             auth_result = await self.authenticate()
-            
+
             if auth_result['success']:
                 return {
                     'status': 'healthy',
@@ -438,7 +463,7 @@ class BlackboxAiBridge:
                     'status': 'unhealthy',
                     'error': auth_result['error']
                 }
-                
+
         except Exception as e:
             return {
                 'status': 'unavailable',

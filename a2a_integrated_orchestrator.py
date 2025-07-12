@@ -19,21 +19,22 @@ logger = logging.getLogger(__name__)
 
 class EnhancedA2AAgent(A2AAgent, KnowledgeAgent):
     """Agent with both A2A communication and knowledge management"""
-    
-    def __init__(self, agent_id: str, name: str, capabilities: List[AgentCapability], 
+
+    def __init__(self, agent_id: str, name: str, capabilities: List[AgentCapability],
+                 """  Init   with enhanced functionality."""
                  knowledge_base: SharedKnowledgeBase, ai_provider=None):
         # Initialize both parent classes
         A2AAgent.__init__(self, agent_id, name, capabilities)
         KnowledgeAgent.__init__(self, agent_id, knowledge_base)
-        
+
         self.ai_provider = ai_provider
         self.specialization = self._determine_specialization()
         self.collaboration_history: List[Dict[str, Any]] = []
-        
+
     def _determine_specialization(self) -> str:
         """Determine agent specialization based on capabilities"""
         capability_names = [cap.name for cap in self.capabilities]
-        
+
         if any('code' in cap for cap in capability_names):
             return 'developer'
         elif any('test' in cap for cap in capability_names):
@@ -44,17 +45,17 @@ class EnhancedA2AAgent(A2AAgent, KnowledgeAgent):
             return 'reviewer'
         else:
             return 'generalist'
-    
+
     async def enhanced_generate_response(self, prompt: str, context: Dict[str, Any] = None) -> Dict[str, Any]:
         """Generate response using AI provider with A2A context"""
-        
+
         # Enrich prompt with relevant knowledge
         relevant_knowledge = await self.discover_knowledge(
             keywords=prompt.split()[:5],  # Use first 5 words as keywords
             knowledge_types=[KnowledgeType.BEST_PRACTICE, KnowledgeType.CODE_PATTERN],
             tags=[self.specialization]
         )
-        
+
         enhanced_prompt = prompt
         if relevant_knowledge:
             knowledge_context = "\\n".join([
@@ -62,12 +63,12 @@ class EnhancedA2AAgent(A2AAgent, KnowledgeAgent):
                 for item in relevant_knowledge[:3]
             ])
             enhanced_prompt = f"{prompt}\\n\\nContext from knowledge base:\\n{knowledge_context}"
-        
+
         # Use AI provider if available
         if self.ai_provider:
             try:
                 response = await self.ai_provider.generate_response(enhanced_prompt, context)
-                
+
                 # Learn from successful interactions
                 if response.get('success'):
                     await self.learn_from_experience(
@@ -78,28 +79,28 @@ class EnhancedA2AAgent(A2AAgent, KnowledgeAgent):
                         lesson="This approach worked well for this type of request",
                         tags=[self.specialization, 'successful_interaction']
                     )
-                
+
                 return response
-                
+
             except Exception as e:
                 logger.error(f"AI provider failed for {self.name}: {e}")
-        
+
         # Fallback to knowledge-based response
         return await self._knowledge_based_response(prompt, context)
-    
+
     async def _knowledge_based_response(self, prompt: str, context: Dict[str, Any] = None) -> Dict[str, Any]:
         """Generate response based on knowledge base"""
-        
+
         # Search for relevant solutions
         solutions = await self.discover_knowledge(
             keywords=prompt.split(),
             knowledge_types=[KnowledgeType.SOLUTION, KnowledgeType.TECHNIQUE],
             tags=[self.specialization]
         )
-        
+
         if solutions:
             best_solution = solutions[0]  # Highest relevance
-            
+
             response_content = {
                 'suggestion': best_solution.description,
                 'source': 'knowledge_base',
@@ -113,7 +114,7 @@ class EnhancedA2AAgent(A2AAgent, KnowledgeAgent):
                 'confidence': 0.3,
                 'recommendation': 'Consider consulting with peer agents or adding this to knowledge base'
             }
-        
+
         return {
             'success': True,
             'response': json.dumps(response_content),
@@ -121,29 +122,29 @@ class EnhancedA2AAgent(A2AAgent, KnowledgeAgent):
             'method': 'knowledge_based',
             'timestamp': time.time()
         }
-    
+
     async def collaborate_on_task(self, task: Dict[str, Any], peer_ids: List[str]) -> Dict[str, Any]:
         """Collaborate with peer agents on a specific task"""
-        
+
         task_id = task.get('id', str(time.time()))
         task_description = task.get('description', '')
-        
+
         logger.info(f"Agent {self.name} starting collaboration on task: {task_description}")
-        
+
         # Step 1: Analyze task and identify required capabilities
         required_capabilities = task.get('required_capabilities', [])
         my_relevant_capabilities = [
-            cap.name for cap in self.capabilities 
+            cap.name for cap in self.capabilities
             if any(req in cap.name for req in required_capabilities)
         ]
-        
+
         # Step 2: Discover relevant knowledge
         task_knowledge = await self.discover_knowledge(
             keywords=task_description.split(),
             knowledge_types=[KnowledgeType.SOLUTION, KnowledgeType.BEST_PRACTICE],
             tags=required_capabilities
         )
-        
+
         # Step 3: Share knowledge with peers
         for peer_id in peer_ids:
             if task_knowledge:
@@ -161,7 +162,7 @@ class EnhancedA2AAgent(A2AAgent, KnowledgeAgent):
                         'my_capabilities': my_relevant_capabilities
                     }
                 )
-        
+
         # Step 4: Request collaboration
         collaboration_id = await self.propose_collaboration(
             peer_ids=peer_ids,
@@ -172,10 +173,10 @@ class EnhancedA2AAgent(A2AAgent, KnowledgeAgent):
                 'available_knowledge': len(task_knowledge)
             }
         )
-        
+
         # Step 5: Execute my part of the task
         my_contribution = await self._execute_task_part(task, my_relevant_capabilities)
-        
+
         # Step 6: Record collaboration outcome
         collaboration_result = {
             'collaboration_id': collaboration_id,
@@ -185,9 +186,9 @@ class EnhancedA2AAgent(A2AAgent, KnowledgeAgent):
             'knowledge_used': len(task_knowledge),
             'timestamp': time.time()
         }
-        
+
         self.collaboration_history.append(collaboration_result)
-        
+
         # Step 7: Learn from this collaboration
         await self.learn_from_experience(
             experience_title=f"Collaboration on {task_description}",
@@ -197,25 +198,25 @@ class EnhancedA2AAgent(A2AAgent, KnowledgeAgent):
             lesson="Collaboration improved task outcome through knowledge sharing",
             tags=['collaboration', 'teamwork', self.specialization]
         )
-        
+
         return collaboration_result
-    
+
     async def _execute_task_part(self, task: Dict[str, Any], relevant_capabilities: List[str]) -> Dict[str, Any]:
         """Execute the agent's part of the task"""
-        
+
         if not relevant_capabilities:
             return {
                 'status': 'no_relevant_capabilities',
                 'message': 'No relevant capabilities for this task'
             }
-        
+
         # Simulate task execution based on capabilities
         primary_capability = relevant_capabilities[0]
-        
+
         # Generate task-specific response
         task_prompt = f"Execute {primary_capability} for task: {task.get('description', '')}"
         response = await self.enhanced_generate_response(task_prompt, {'task': task})
-        
+
         return {
             'status': 'completed',
             'capability_used': primary_capability,
@@ -225,50 +226,51 @@ class EnhancedA2AAgent(A2AAgent, KnowledgeAgent):
 
 class IntegratedSDLCOrchestrator:
     """Integrated SDLC Orchestrator with A2A communication"""
-    
+
+    """  Init   with enhanced functionality."""
     def __init__(self):
         self.foundational_orchestrator = FoundationalOrchestrator()
         self.a2a_orchestrator = A2AOrchestrator()
         self.knowledge_base = SharedKnowledgeBase()
         self.enhanced_agents: Dict[str, EnhancedA2AAgent] = {}
         self.active_collaborations: Dict[str, Dict[str, Any]] = {}
-        
+
     async def initialize(self):
         """Initialize the integrated orchestrator"""
-        
+
         await self.foundational_orchestrator.initialize()
         await self.a2a_orchestrator.start()
-        
+
         # Create enhanced agents
         await self._create_enhanced_agents()
-        
+
         logger.info("Integrated SDLC Orchestrator initialized")
-    
+
     async def _create_enhanced_agents(self):
         """Create enhanced agents with A2A and knowledge capabilities"""
-        
+
         # Developer Agent
         dev_capabilities = [
             AgentCapability("code_generation", "Generate code", ["requirements"], ["code"], 0.9, ["python", "javascript"]),
             AgentCapability("code_refactoring", "Refactor code", ["code"], ["improved_code"], 0.8, ["optimization"]),
             AgentCapability("api_design", "Design APIs", ["requirements"], ["api_spec"], 0.85, ["rest", "graphql"])
         ]
-        
+
         dev_agent = EnhancedA2AAgent(
-            "enhanced_dev_001", 
-            "Enhanced Developer", 
-            dev_capabilities, 
+            "enhanced_dev_001",
+            "Enhanced Developer",
+            dev_capabilities,
             self.knowledge_base,
             self.foundational_orchestrator.ai_providers.get('openai')
         )
-        
+
         # Testing Agent
         test_capabilities = [
             AgentCapability("test_generation", "Generate tests", ["code"], ["tests"], 0.9, ["unit", "integration"]),
             AgentCapability("test_automation", "Automate testing", ["tests"], ["test_suite"], 0.85, ["ci_cd"]),
             AgentCapability("bug_detection", "Detect bugs", ["code"], ["bug_report"], 0.8, ["static_analysis"])
         ]
-        
+
         test_agent = EnhancedA2AAgent(
             "enhanced_test_001",
             "Enhanced Tester",
@@ -276,14 +278,14 @@ class IntegratedSDLCOrchestrator:
             self.knowledge_base,
             self.foundational_orchestrator.ai_providers.get('anthropic')
         )
-        
+
         # Architecture Agent
         arch_capabilities = [
             AgentCapability("system_design", "Design system architecture", ["requirements"], ["architecture"], 0.9, ["microservices"]),
             AgentCapability("performance_optimization", "Optimize performance", ["system"], ["optimizations"], 0.85, ["scalability"]),
             AgentCapability("security_review", "Review security", ["design"], ["security_assessment"], 0.8, ["security"])
         ]
-        
+
         arch_agent = EnhancedA2AAgent(
             "enhanced_arch_001",
             "Enhanced Architect",
@@ -291,52 +293,52 @@ class IntegratedSDLCOrchestrator:
             self.knowledge_base,
             self.foundational_orchestrator.ai_providers.get('gemini')
         )
-        
+
         # Register agents
         agents = [dev_agent, test_agent, arch_agent]
         for agent in agents:
             self.enhanced_agents[agent.agent_id] = agent
             self.a2a_orchestrator.register_agent(agent)
             await agent.start()
-        
+
         logger.info(f"Created {len(agents)} enhanced agents")
-    
+
     async def execute_complex_task(self, task_description: str, requirements: Dict[str, Any]) -> Dict[str, Any]:
         """Execute complex task using A2A collaboration"""
-        
+
         task = {
             'id': f"task_{int(time.time())}",
             'description': task_description,
             'requirements': requirements,
             'required_capabilities': self._analyze_required_capabilities(task_description, requirements)
         }
-        
+
         logger.info(f"Executing complex task: {task_description}")
-        
+
         # Step 1: Identify suitable agents
         suitable_agents = self._find_suitable_agents(task['required_capabilities'])
-        
+
         if len(suitable_agents) < 2:
             # Fallback to single agent or foundational orchestrator
             return await self._fallback_execution(task)
-        
+
         # Step 2: Initiate A2A collaboration
         coordinator_agent = suitable_agents[0]
         peer_agents = suitable_agents[1:]
-        
+
         # Step 3: Execute collaborative task
         collaboration_results = []
-        
+
         # Coordinator starts the collaboration
         coordinator_result = await coordinator_agent.collaborate_on_task(
             task=task,
             peer_ids=[agent.agent_id for agent in peer_agents]
         )
         collaboration_results.append(coordinator_result)
-        
+
         # Wait for peer collaborations
         await asyncio.sleep(2)  # Allow time for A2A message processing
-        
+
         # Step 4: Collect peer contributions
         for peer_agent in peer_agents:
             peer_result = await peer_agent.collaborate_on_task(
@@ -344,67 +346,67 @@ class IntegratedSDLCOrchestrator:
                 peer_ids=[coordinator_agent.agent_id]
             )
             collaboration_results.append(peer_result)
-        
+
         # Step 5: Synthesize results
         final_result = await self._synthesize_collaboration_results(task, collaboration_results)
-        
+
         # Step 6: Record collaboration in knowledge base
         await self._record_collaboration_knowledge(task, collaboration_results, final_result)
-        
+
         return final_result
-    
+
     def _analyze_required_capabilities(self, task_description: str, requirements: Dict[str, Any]) -> List[str]:
         """Analyze task to determine required capabilities"""
-        
+
         required_capabilities = []
-        
+
         # Keyword-based analysis (simplified)
         if any(keyword in task_description.lower() for keyword in ['code', 'implement', 'develop']):
             required_capabilities.append('code_generation')
-        
+
         if any(keyword in task_description.lower() for keyword in ['test', 'verify', 'validate']):
             required_capabilities.append('test_generation')
-        
+
         if any(keyword in task_description.lower() for keyword in ['design', 'architecture', 'system']):
             required_capabilities.append('system_design')
-        
+
         if any(keyword in task_description.lower() for keyword in ['review', 'analyze', 'audit']):
             required_capabilities.append('code_review')
-        
+
         # Add capabilities from requirements
         if 'performance' in requirements:
             required_capabilities.append('performance_optimization')
-        
+
         if 'security' in requirements:
             required_capabilities.append('security_review')
-        
+
         return required_capabilities or ['code_generation']  # Default capability
-    
+
     def _find_suitable_agents(self, required_capabilities: List[str]) -> List[EnhancedA2AAgent]:
         """Find agents suitable for the required capabilities"""
-        
+
         suitable_agents = []
-        
+
         for agent in self.enhanced_agents.values():
             agent_capabilities = [cap.name for cap in agent.capabilities]
-            
+
             # Check if agent has any required capability
             if any(req_cap in agent_capabilities for req_cap in required_capabilities):
                 suitable_agents.append(agent)
-        
+
         # Sort by capability match count
         suitable_agents.sort(
             key=lambda agent: len(set([cap.name for cap in agent.capabilities]) & set(required_capabilities)),
             reverse=True
         )
-        
+
         return suitable_agents
-    
+
     async def _fallback_execution(self, task: Dict[str, Any]) -> Dict[str, Any]:
         """Fallback to foundational orchestrator"""
-        
+
         logger.info("Falling back to foundational orchestrator")
-        
+
         return await self.foundational_orchestrator.collaborate(
             session_id=task['id'],
             paradigm='orchestra',
@@ -412,16 +414,16 @@ class IntegratedSDLCOrchestrator:
             agents=['openai', 'anthropic'],
             context=task.get('requirements', {})
         )
-    
-    async def _synthesize_collaboration_results(self, task: Dict[str, Any], 
+
+    async def _synthesize_collaboration_results(self, task: Dict[str, Any],
                                               collaboration_results: List[Dict[str, Any]]) -> Dict[str, Any]:
         """Synthesize results from multiple agent collaborations"""
-        
+
         successful_contributions = [
             result for result in collaboration_results
             if result.get('my_contribution', {}).get('status') == 'completed'
         ]
-        
+
         # Combine contributions
         combined_output = {
             'task_id': task['id'],
@@ -435,7 +437,7 @@ class IntegratedSDLCOrchestrator:
             'success': len(successful_contributions) > 0,
             'timestamp': time.time()
         }
-        
+
         for result in successful_contributions:
             contribution = result.get('my_contribution', {})
             combined_output['contributions'].append({
@@ -444,36 +446,36 @@ class IntegratedSDLCOrchestrator:
                 'confidence': contribution.get('confidence', 0),
                 'response': contribution.get('response', {})
             })
-            
+
             combined_output['knowledge_items_used'] += result.get('knowledge_used', 0)
-        
+
         # Create synthesis
         if successful_contributions:
             avg_confidence = sum(
                 contrib.get('my_contribution', {}).get('confidence', 0)
                 for contrib in successful_contributions
             ) / len(successful_contributions)
-            
+
             combined_output['synthesis'] = {
                 'quality': 'high' if avg_confidence > 0.8 else 'medium' if avg_confidence > 0.6 else 'low',
                 'average_confidence': avg_confidence,
                 'collaboration_effectiveness': len(successful_contributions) / len(collaboration_results),
                 'knowledge_leverage': combined_output['knowledge_items_used'] > 0
             }
-        
+
         return combined_output
-    
-    async def _record_collaboration_knowledge(self, task: Dict[str, Any], 
+
+    async def _record_collaboration_knowledge(self, task: Dict[str, Any],
                                             collaboration_results: List[Dict[str, Any]],
                                             final_result: Dict[str, Any]):
         """Record collaboration knowledge for future use"""
-        
+
         # Record successful collaboration pattern
         if final_result.get('success') and len(collaboration_results) > 1:
-            
+
             # Find a suitable agent to record the knowledge
             recorder_agent = list(self.enhanced_agents.values())[0]
-            
+
             await recorder_agent.contribute_knowledge(
                 title=f"Successful A2A Collaboration: {task['description'][:50]}",
                 description=f"Multi-agent collaboration that successfully completed: {task['description']}",
@@ -488,19 +490,19 @@ class IntegratedSDLCOrchestrator:
                 },
                 tags=['collaboration', 'workflow', 'a2a', 'successful']
             )
-    
+
     async def get_orchestrator_status(self) -> Dict[str, Any]:
         """Get comprehensive orchestrator status"""
-        
+
         # Get foundational orchestrator health
         foundational_health = await self.foundational_orchestrator.health_check()
-        
+
         # Get A2A network status
         a2a_status = self.a2a_orchestrator.get_network_status()
-        
+
         # Get knowledge base stats
         knowledge_stats = self.knowledge_base.get_knowledge_stats()
-        
+
         # Get enhanced agents status
         enhanced_agents_status = {}
         for agent_id, agent in self.enhanced_agents.items():
@@ -510,7 +512,7 @@ class IntegratedSDLCOrchestrator:
                 'collaboration_history': len(agent.collaboration_history),
                 'knowledge_contributions': len(agent.get_knowledge_contributions())
             }
-        
+
         return {
             'integration_status': 'active',
             'foundational_orchestrator': foundational_health,
@@ -520,36 +522,36 @@ class IntegratedSDLCOrchestrator:
             'active_collaborations': len(self.active_collaborations),
             'timestamp': time.time()
         }
-    
+
     async def close(self):
         """Close the integrated orchestrator"""
-        
+
         # Stop enhanced agents
         for agent in self.enhanced_agents.values():
             await agent.stop()
-        
+
         # Stop orchestrators
         await self.a2a_orchestrator.stop()
         await self.foundational_orchestrator.close()
-        
+
         logger.info("Integrated SDLC Orchestrator closed")
 
 # Example usage and testing
 async def demo_integrated_orchestrator():
     """Demonstrate the integrated orchestrator"""
-    print("🚀 Integrated A2A SDLC Orchestrator Demo")
-    print("=" * 60)
-    
+    logger.info("🚀 Integrated A2A SDLC Orchestrator Demo")
+    logger.info("=" * 60)
+
     # Create and initialize orchestrator
     orchestrator = IntegratedSDLCOrchestrator()
-    
+
     try:
         await orchestrator.initialize()
-        print("✅ Integrated orchestrator initialized")
-        
+        logger.info("✅ Integrated orchestrator initialized")
+
         # Test 1: Complex task execution
-        print("\\n🔧 Test 1: Complex Task Execution")
-        
+        logger.info("\\n🔧 Test 1: Complex Task Execution")
+
         result = await orchestrator.execute_complex_task(
             task_description="Design and implement a secure user authentication system with testing",
             requirements={
@@ -559,37 +561,37 @@ async def demo_integrated_orchestrator():
                 'language': 'python'
             }
         )
-        
-        print(f"Task Result:")
-        print(f"  Success: {result['success']}")
-        print(f"  Agents involved: {result['total_agents']}")
-        print(f"  Successful contributions: {result['successful_contributions']}")
-        print(f"  Quality: {result['synthesis']['quality']}")
-        print(f"  Knowledge items used: {result['knowledge_items_used']}")
-        
+
+        logger.info(f"Task Result:")
+        logger.info(f"  Success: {result['success']}")
+        logger.info(f"  Agents involved: {result['total_agents']}")
+        logger.info(f"  Successful contributions: {result['successful_contributions']}")
+        logger.info(f"  Quality: {result['synthesis']['quality']}")
+        logger.info(f"  Knowledge items used: {result['knowledge_items_used']}")
+
         # Test 2: Orchestrator status
-        print("\\n📊 Test 2: Orchestrator Status")
-        
+        logger.info("\\n📊 Test 2: Orchestrator Status")
+
         status = await orchestrator.get_orchestrator_status()
-        print(f"Integration Status: {status['integration_status']}")
-        print(f"Enhanced Agents: {len(status['enhanced_agents'])}")
-        print(f"Knowledge Base Items: {status['knowledge_base']['total_items']}")
-        print(f"A2A Network Agents: {status['a2a_network']['total_agents']}")
-        
+        logger.info(f"Integration Status: {status['integration_status']}")
+        logger.info(f"Enhanced Agents: {len(status['enhanced_agents'])}")
+        logger.info(f"Knowledge Base Items: {status['knowledge_base']['total_items']}")
+        logger.info(f"A2A Network Agents: {status['a2a_network']['total_agents']}")
+
         # Test 3: Agent specializations
-        print("\\n🎯 Test 3: Agent Specializations")
+        logger.info("\\n🎯 Test 3: Agent Specializations")
         for agent_id, agent_status in status['enhanced_agents'].items():
             print(f"  {agent_status['name']}: {agent_status['specialization']} "
                   f"({agent_status['capabilities_count']} capabilities)")
-        
-        print("\\n✅ Integrated A2A SDLC Orchestrator Demo Complete!")
-        
+
+        logger.info("\\n✅ Integrated A2A SDLC Orchestrator Demo Complete!")
+
     finally:
         await orchestrator.close()
 
 if __name__ == "__main__":
     # Configure logging
     logging.basicConfig(level=logging.INFO)
-    
+
     # Run demo
     asyncio.run(demo_integrated_orchestrator())

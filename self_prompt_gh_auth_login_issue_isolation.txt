@@ -1,0 +1,40 @@
+Self-Prompt: Sequential Semantic Chain-of-Thought (CoT) with Reverse Decomposition to Isolate and Fix GitHub CLI Authentication Login Problem
+
+Goal:
+- Isolate the root cause of the GitHub CLI (gh) authentication login issue.
+- Fix the problem to enable successful gh auth login without relying on the GITHUB_TOKEN environment variable.
+
+Step 1: Understand the Problem Context
+- The gh auth login command is stuck or not completing as expected.
+- The environment variable GITHUB_TOKEN may still be set or interfering.
+- The CLI may be caching old credentials or environment settings.
+
+Step 2: Reverse Decomposition of the Problem
+- Identify all sources where GITHUB_TOKEN could be set (shell, IDE, system environment).
+- Check for any cached credentials or config files used by GitHub CLI.
+- Verify the current environment variables in the shell session.
+- Confirm the version of GitHub CLI and its configuration.
+
+Step 3: Sequential Steps to Isolate the Issue
+- Clear GITHUB_TOKEN from all environment sources.
+- Clear GitHub CLI cached credentials and config.
+- Restart the shell or IDE to ensure clean environment.
+- Run gh auth login with verbose/debug mode to capture detailed logs.
+- Analyze logs for errors or blocking points.
+
+Step 4: Fix Implementation
+- Remove or unset GITHUB_TOKEN environment variable permanently.
+- Remove or reset GitHub CLI config and cache if corrupted.
+- Ensure no conflicting environment variables or config files.
+- Re-run gh auth login and verify success.
+
+Step 5: Verification and Testing
+- Confirm gh auth status shows authenticated user.
+- Test GitHub CLI commands requiring authentication.
+- Validate no environment variable dependency.
+
+Step 6: Documentation and Automation
+- Document the fix steps and environment cleanup.
+- Create scripts to automate environment cleanup and gh auth login.
+
+This self-prompt guides a systematic, semantic, and stepwise approach to isolate and fix the GitHub CLI authentication login problem using reverse decomposition and chain-of-thought reasoning.

@@ -25,6 +25,10 @@ app.register_blueprint(recommendations_bp, url_prefix='/api')
 app.register_blueprint(bridges_bp, url_prefix='/api')
 
 # Configure database URI with cross-platform path joining
+
+# Constants
+HTTP_NOT_FOUND = 404
+
 db_path = os.path.join(os.path.dirname(__file__), 'database', 'app.db')
 app.config['SQLALCHEMY_DATABASE_URI'] = f"sqlite:///{db_path}"
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
@@ -34,14 +38,15 @@ try:
     with app.app_context():
         db.create_all()
 except Exception as e:
-    print(f"Error initializing database: {e}")
+    logger.info(f"Error initializing database: {e}")
 
 @app.route('/', defaults={'path': ''})
 @app.route('/<path:path>')
 def serve(path):
+    """Serve with enhanced functionality."""
     static_folder_path = app.static_folder
     if not static_folder_path:
-        return "Static folder not configured", 404
+        return "Static folder not configured", HTTP_NOT_FOUND
 
     requested_path = os.path.join(static_folder_path, path)
     if path and os.path.exists(requested_path):
@@ -51,7 +56,7 @@ def serve(path):
         if os.path.exists(index_path):
             return send_from_directory(static_folder_path, 'index.html')
         else:
-            return "index.html not found", 404
+            return "index.html not found", HTTP_NOT_FOUND
 
 
 if __name__ == '__main__':

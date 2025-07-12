@@ -1,0 +1,42 @@
+[?2004h]0;asshat1981ar@Asshat1981: /mnt/c/Users/posso/Downloads/1[01;32masshat1981ar@Asshat1981[00m:[01;34m/mnt/c/Users/posso/Downloads/1[00m$ clear
+[?2004l[H[2J[3J[?2004h]0;asshat1981ar@Asshat1981: /mnt/c/Users/posso/Downloads/1[01;32masshat1981ar@Asshat1981[00m:[01;34m/mnt/c/Users/posso/Downloads/1[00m$ [K]0;asshat1981ar@Asshat1981: /mnt/c/Users/posso/Downloads/1[01;32masshat1981ar@Asshat1981[00m:[01;34m/mnt/c/Users/posso/Downloads/1[00m$ [K]0;asshat1981ar@Asshat1981: /mnt/c/Users/posso/Downloads/1[01;32masshat1981ar@Asshat1981[00m:[01;34m/mnt/c/Users/posso/Downloads/1[00m$ [K]0;asshat1981ar@Asshat1981: /mnt/c/Users/posso/Downloads/1[01;32masshat1981ar@Asshat1981[00m:[01;34m/mnt/c/Users/posso/Downloads/1[00m$ gthub committ=[K[K .
+[?2004lCommand 'gthub' not found, did you mean:
+  command 'gthumb' from deb gthumb (3:3.12.4-1)
+Try: sudo apt install <deb name>
+[?2004h]0;asshat1981ar@Asshat1981: /mnt/c/Users/posso/Downloads/1[01;32masshat1981ar@Asshat1981[00m:[01;34m/mnt/c/Users/posso/Downloads/1[00m$ sudo apt install git
+[?2004l
+WARNING: apt does not have a stable CLI interface. Use with caution in scripts.
+
+Reading package lists...
+Building dependency tree...
+Reading state information...
+The following additional packages will be installed:
+  git-man
+Suggested packages:
+  git-daemon-run | git-daemon-sysvinit git-doc git-email git-gui gitk gitweb
+  git-cvs git-mediawiki git-svn
+The following packages will be upgraded:
+  git git-man
+2 upgraded, 0 newly installed, 0 to remove and 59 not upgraded.
+Need to get 0 B/4780 kB of archives.
+After this operation, 1024 B disk space will be freed.
+Do you want to continue? [Y/n] debconf: unable to initialize frontend: Dialog
+debconf: (Dialog frontend requires a screen at least 13 lines tall and 31 columns wide.)
+debconf: falling back to frontend: Readline
+(Reading database ... (Reading database ... 5%(Reading database ... 10%(Reading database ... 15%(Reading database ... 20%(Reading database ... 25%(Reading database ... 30%(Reading database ... 35%(Reading database ... 40%(Reading database ... 45%(Reading database ... 50%(Reading database ... 55%(Reading database ... 60%(Reading database ... 65%(Reading database ... 70%(Reading database ... 75%(Reading database ... 80%(Reading database ... 85%(Reading database ... 90%(Reading database ... 95%(Reading database ... 100%(Reading database ... 69387 files and directories currently installed.)
+Preparing to unpack .../git-man_1%3a2.43.0-1ubuntu7.3_all.deb ...
+Unpacking git-man (1:2.43.0-1ubuntu7.3) over (1:2.43.0-1ubuntu7.2) ...
+Preparing to unpack .../git_1%3a2.43.0-1ubuntu7.3_amd64.deb ...
+Unpacking git (1:2.43.0-1ubuntu7.3) over (1:2.43.0-1ubuntu7.2) ...
+Setting up git-man (1:2.43.0-1ubuntu7.3) ...
+Setting up git (1:2.43.0-1ubuntu7.3) ...
+Processing triggers for man-db (2.12.0-4build2) ...
+[?2004h]0;asshat1981ar@Asshat1981: /mnt/c/Users/posso/Downloads/1[01;32masshat1981ar@Asshat1981[00m:[01;34m/mnt/c/Users/posso/Downloads/1[00m$ sudo apt install git[6Pgthub commit .
+[?2004lCommand 'gthub' not found, did you mean:
+  command 'gthumb' from deb gthumb (3:3.12.4-1)
+Try: sudo apt install <deb name>
+[?2004h]0;asshat1981ar@Asshat1981: /mnt/c/Users/posso/Downloads/1[01;32masshat1981ar@Asshat1981[00m:[01;34m/mnt/c/Users/posso/Downloads/1[00m$ gthub commit .[1P[1P[1P[1P[1@i[1@t
+[?2004l[?2004h[?1049h[22;0;0t[1;24r(B[m[4l[?7h[39;49m[?1h=[?1h=[?25l[39;49m(B[m[H[2J[22;34H(B[0;7m[ Reading... ](B[m[22;32H(B[0;7m[ Read 45 lines ](B[m[H(B[0;7m  GNU nano 7.2   /mnt/c/Users/posso/Downloads/1/.git/COMMIT_EDITMSG             [1;79H(B[m[23d(B[0;7m^G(B[m Help[14G(B[0;7m^O(B[m Write Out (B[0;7m^W(B[m Where Is  (B[0;7m^K(B[m Cut[53G(B[0;7m^T(B[m Execute   (B[0;7m^C(B[m Location[24d(B[0;7m^X(B[m Exit[14G(B[0;7m^R(B[m Read File (B[0;7m^\(B[m Replace   (B[0;7m^U(B[m Paste     (B[0;7m^J(B[m Justify   (B[0;7m^/(B[m Go To Line[3d[36m# Please enter the commit message for your changes. Lines starting[4d# with '#' will be ignored, and an empty message aborts the commit.[5d#[6d# On branch main[7d# Changes to be committed:[8d#[38;5;208m       [36mmodified:   .github/chatmodes/SDLC.chatmode.md[9d#[38;5;208m       [36mmodified:   .github/chatmodes/Untitled-1.txt[10d#[38;5;208m       [36mmodified:   .github/workflows/ci-cd.yml[11d#[38;5;208m       [36mmodified:   App.tsx[12d#[38;5;208m       [36mmodified:   constants.tsx[13d#[38;5;208m       [36mmodified:   docker-compose.yml[14d#[38;5;208m       [36mmodified:   main.py[15d#[38;5;208m       [36mmodified:   refactored_orchestrator.py[16d#[38;5;208m       [36mmodified:   src/services/ai_providers.py[17d#[38;5;208m       [36mmodified:   src/services/bridges/github_codex_bridge.py[18d#[38;5;208m       [36mdeleted:    test_suite.py[19d#[20d# Untracked files:[21d#[38;5;208m       [36m.coverage[2d[39m(B[m[?12l[?25h[?25l[22;29H(B[0;7m[ Justified paragraph ](B[m[1;69H(B[0;7m*[79G(B[m[3;67H[36m with [4d#[39m(B[m[5P[5d[?12l[?25h[?25l[22;52H[7;21r[21;1H
+[1;24r[6;17H[36m Changes to be committed:[21d#[38;5;208m       [36mDeepSeek-Copilot/[7d[39m(B[m[?12l[?25h[?25l[22;52H[14;21r[21;1H[3S[1;24r[6;42H[36m modified: [7;9H.github/chatmodes/SDLC.chatmode.md modified: [39m(B[m[K[8;9H[36m.github/chatmodes/Untitled-1.txt modified: [39m(B[m[K[9;9H[36m.github/workflows/ci-cd.yml modified: App.tsx modified: [10;9Hconstants.tsx modified: docker-compose.yml modified: main.py [11;19Hrefactored_orchestrator.py modified: [12;9Hsrc/services/ai_providers.py modified: [13;9Hsrc/services/bridges/github_codex_bridge.py deleted: [14;9H[39m(B[m[12P[19d[36m#[38;5;208m       [36magent_registry.py[20d#[38;5;208m       [36mapp.py[21d#[38;5;208m       [36mautonomous_sdlc_self_prompt.txt[15d[39m(B[m[?12l[?25h[?25l[22;52H[2d[36m#[38;5;208m       [36mgenerated_self_directed_prompt.py integrated_autonomous_loops.py [3d#[38;5;208m       [36mmetrics.py research_and_develop_loops_self_prompt.txt [39m(B[m[K[4;2H[38;5;208m       [36mrun_autonomous_sdlc_loop.py self_learning_improvement_loops.py [5d#[38;5;208m       [36mself_prompt_environment_setup_for_imports.txt [6d#[38;5;208m       [36mself_prompt_gh_auth_login_issue_isolation.txt [7;9Hself_prompt_github_codex_bridge_testing.txt [39m(B[m[K[8;9H[36mself_prompt_github_token_removal_and_auth_setup.txt [9;9Hsrc/run_autonomous_sdlc_loop.py [39m(B[m[K[10;9H[36msrc/services/ai_providers.test.py src/test_module.py [39m(B[m[K[11;9H[36mtest_suite_old.py testing_loop_runner.py tests/[12d#[39m(B[m[K[13d[K[14d[K[15d[K[16d[K[17d[K[18d[K[19d[K[20d[K[21d[K[12d[?12l[?25h[?25l[13d[?12l[?25h[?25l[?12l[?25h[?25l[?12l[?25h[?25l[?12l[?25h[?25l[?12l[?25h[?25l[?12l[?25h[?25l[?12l[?25h[?25l[22;52H[13dy[14d[?12l[?25h[?25l[22;52H[13;3HEXIT[14d[?12l[?25h[?25l[?12l[?25h[?25l[?12l[?25h[?25l[?12l[?25h[?25l[22;52H[13;8Ha[14d[?12l[?25h[?25l[22;52H[13;10Hkl;[14d[?12l[?25h[?25l[?12l[?25h[?25l[22;34H[1K (B[0;7m[ Mark Set ](B[m[K[1;75H(B[0;7mM   (B[m[22;11H(B[0;7m[ line 31/32 (96%), col 27/27 (100%), char 1459/1460 (99%) ](B[m[22;30H[1K (B[0;1m[37m[41m[ No word fragment ][39;49m(B[m[K(B[0;7mSave modified buffer?                                                           [23;1H Y(B[m Yes[K[24d(B[0;7m N(B[m No  [14G   (B[0;7m^C(B[m Cancel[K[22;23H[?12l[?25h[24;1H[?1049l[23;0;0t[?1l>[?2004lReceived SIGHUP or SIGTERM
+
+Buffer written to /mnt/c/Users/posso/Downloads/1/.git/COMMIT_EDITMSG.save

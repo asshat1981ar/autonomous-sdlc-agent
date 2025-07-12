@@ -1,0 +1,462 @@
+name: Production Deployment
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to deploy (e.g., v1.2.3)'
+        required: true
+        type: string
+      skip_tests:
+        description: 'Skip pre-deployment tests'
+        required: false
+        type: boolean
+        default: false
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+  AWS_REGION: us-west-2
+  EKS_CLUSTER_NAME: autonomous-sdlc-production
+
+jobs:
+  validate-deployment:
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+      image-tag: ${{ steps.version.outputs.image-tag }}
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Determine version
+      id: version
+      run: |
+        if [[ "${{ github.event_name }}" == "release" ]]; then
+          VERSION="${{ github.event.release.tag_name }}"
+        else
+          VERSION="${{ github.event.inputs.version }}"
+        fi
+        
+        echo "version=${VERSION}" >> $GITHUB_OUTPUT
+        echo "image-tag=${REGISTRY}/${IMAGE_NAME}:${VERSION}" >> $GITHUB_OUTPUT
+        
+        echo "Deploying version: ${VERSION}"
+
+    - name: Verify image exists
+      run: |
+        # Check if the Docker image exists
+        docker manifest inspect ${{ steps.version.outputs.image-tag }} > /dev/null || {
+          echo "Error: Image ${{ steps.version.outputs.image-tag }} does not exist"
+          exit 1
+        }
+
+    - name: Validate Kubernetes manifests
+      run: |
+        # Install kubeval for manifest validation
+        wget https://github.com/instrumenta/kubeval/releases/latest/download/kubeval-linux-amd64.tar.gz
+        tar xf kubeval-linux-amd64.tar.gz
+        sudo mv kubeval /usr/local/bin
+        
+        # Validate all Kubernetes manifests
+        find k8s/production -name "*.yaml" -exec kubeval {} \;
+
+  pre-deployment-tests:
+    runs-on: ubuntu-latest
+    needs: validate-deployment
+    if: ${{ !github.event.inputs.skip_tests }}
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.12'
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install pytest pytest-asyncio
+
+    - name: Run pre-deployment validation tests
+      run: |
+        # Run comprehensive test suite
+        pytest tests/deployment/pre_deployment_tests.py -v
+        
+        # Validate A2A framework compatibility
+        python tests/deployment/validate_a2a_compatibility.py
+        
+        # Check for breaking changes
+        python tests/deployment/breaking_change_detector.py
+
+    - name: Load testing simulation
+      run: |
+        # Simulate production load to validate performance
+        python tests/deployment/load_test_simulation.py \
+          --target-image=${{ needs.validate-deployment.outputs.image-tag }}
+
+  security-validation:
+    runs-on: ubuntu-latest
+    needs: validate-deployment
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Security scan of production image
+      uses: aquasecurity/trivy-action@master
+      with:
+        image-ref: ${{ needs.validate-deployment.outputs.image-tag }}
+        format: 'table'
+        exit-code: '1'
+        severity: 'CRITICAL,HIGH'
+
+    - name: Compliance check
+      run: |
+        # Check for compliance requirements
+        python scripts/compliance_checker.py --environment=production
+        
+        # Validate security configurations
+        python scripts/security_validator.py --image=${{ needs.validate-deployment.outputs.image-tag }}
+
+  backup-current-state:
+    runs-on: ubuntu-latest
+    needs: [validate-deployment, pre-deployment-tests, security-validation]
+    environment:
+      name: production
+    steps:
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID_PROD }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY_PROD }}
+        aws-region: ${{ env.AWS_REGION }}
+
+    - name: Set up kubectl
+      uses: azure/setup-kubectl@v3
+      with:
+        version: 'v1.28.0'
+
+    - name: Update kubeconfig
+      run: |
+        aws eks update-kubeconfig --region ${{ env.AWS_REGION }} --name ${{ env.EKS_CLUSTER_NAME }}
+
+    - name: Create comprehensive backup
+      run: |
+        BACKUP_DIR="backup-$(date +%Y%m%d-%H%M%S)"
+        mkdir -p ${BACKUP_DIR}
+        
+        # Backup all deployments
+        kubectl get deployments -n production -o yaml > ${BACKUP_DIR}/deployments.yaml
+        kubectl get services -n production -o yaml > ${BACKUP_DIR}/services.yaml
+        kubectl get configmaps -n production -o yaml > ${BACKUP_DIR}/configmaps.yaml
+        kubectl get secrets -n production -o yaml > ${BACKUP_DIR}/secrets.yaml
+        kubectl get ingresses -n production -o yaml > ${BACKUP_DIR}/ingresses.yaml
+        
+        # Backup database
+        kubectl exec -n production deployment/postgresql -- pg_dump -U postgres autonomous_sdlc > ${BACKUP_DIR}/database.sql
+        
+        # Store backup in S3
+        tar czf ${BACKUP_DIR}.tar.gz ${BACKUP_DIR}
+        aws s3 cp ${BACKUP_DIR}.tar.gz s3://autonomous-sdlc-backups/production/
+        
+        echo "BACKUP_PATH=s3://autonomous-sdlc-backups/production/${BACKUP_DIR}.tar.gz" >> $GITHUB_ENV
+
+    - name: Create rollback script
+      run: |
+        cat > rollback.sh << 'EOF'
+        #!/bin/bash
+        set -e
+        
+        echo "Starting rollback process..."
+        
+        # Download backup
+        aws s3 cp ${{ env.BACKUP_PATH }} ./backup.tar.gz
+        tar xzf backup.tar.gz
+        
+        # Restore deployments
+        kubectl apply -f backup-*/deployments.yaml -n production
+        kubectl apply -f backup-*/services.yaml -n production
+        kubectl apply -f backup-*/configmaps.yaml -n production
+        kubectl apply -f backup-*/ingresses.yaml -n production
+        
+        # Wait for rollback to complete
+        kubectl rollout status deployment/autonomous-sdlc-api -n production --timeout=600s
+        kubectl rollout status deployment/autonomous-sdlc-worker -n production --timeout=600s
+        
+        echo "Rollback completed successfully"
+        EOF
+        
+        chmod +x rollback.sh
+        
+        # Store rollback script in S3
+        aws s3 cp rollback.sh s3://autonomous-sdlc-backups/production/rollback-$(date +%Y%m%d-%H%M%S).sh
+
+  deploy-production:
+    runs-on: ubuntu-latest
+    needs: [validate-deployment, pre-deployment-tests, security-validation, backup-current-state]
+    environment:
+      name: production
+      url: https://autonomous-sdlc.com
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID_PROD }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY_PROD }}
+        aws-region: ${{ env.AWS_REGION }}
+
+    - name: Set up kubectl
+      uses: azure/setup-kubectl@v3
+      with:
+        version: 'v1.28.0'
+
+    - name: Update kubeconfig
+      run: |
+        aws eks update-kubeconfig --region ${{ env.AWS_REGION }} --name ${{ env.EKS_CLUSTER_NAME }}
+
+    - name: Pre-deployment health check
+      run: |
+        # Verify current system health before deployment
+        kubectl get pods -n production
+        kubectl top nodes
+        kubectl top pods -n production
+        
+        # Check system resources
+        python scripts/resource_check.py --environment=production
+
+    - name: Rolling deployment with canary strategy
+      run: |
+        # Start canary deployment (10% traffic)
+        echo "Starting canary deployment..."
+        
+        # Update deployment with new image
+        kubectl set image deployment/autonomous-sdlc-api \
+          autonomous-sdlc-api=${{ needs.validate-deployment.outputs.image-tag }} \
+          -n production
+        
+        # Scale down to ensure controlled rollout
+        kubectl scale deployment autonomous-sdlc-api --replicas=1 -n production
+        
+        # Wait for canary pod to be ready
+        kubectl rollout status deployment/autonomous-sdlc-api -n production --timeout=300s
+        
+        # Configure canary routing (10% traffic)
+        kubectl apply -f k8s/production/canary-service.yaml
+
+    - name: Canary validation
+      run: |
+        echo "Validating canary deployment..."
+        
+        # Wait for canary to warm up
+        sleep 60
+        
+        # Run canary tests
+        python tests/deployment/canary_validation.py \
+          --canary-endpoint=https://canary.autonomous-sdlc.com \
+          --production-endpoint=https://autonomous-sdlc.com
+        
+        # Monitor error rates
+        python scripts/monitor_error_rates.py --duration=300 --threshold=0.1
+
+    - name: Gradual traffic increase
+      run: |
+        # Increase to 25% traffic
+        echo "Increasing canary traffic to 25%..."
+        kubectl patch service autonomous-sdlc-api-canary -n production \
+          -p '{"spec":{"selector":{"version":"canary"}}}'
+        
+        # Monitor for 5 minutes
+        python scripts/monitor_metrics.py --duration=300
+        
+        # Increase to 50% traffic
+        echo "Increasing canary traffic to 50%..."
+        kubectl scale deployment autonomous-sdlc-api --replicas=3 -n production
+        
+        # Monitor for 5 minutes
+        python scripts/monitor_metrics.py --duration=300
+        
+        # Full deployment (100% traffic)
+        echo "Completing full deployment..."
+        kubectl scale deployment autonomous-sdlc-api --replicas=5 -n production
+        kubectl rollout status deployment/autonomous-sdlc-api -n production --timeout=600s
+
+    - name: Update worker services
+      run: |
+        # Update worker deployment
+        kubectl set image deployment/autonomous-sdlc-worker \
+          autonomous-sdlc-worker=${{ needs.validate-deployment.outputs.image-tag }} \
+          -n production
+        
+        kubectl rollout status deployment/autonomous-sdlc-worker -n production --timeout=600s
+        
+        # Update background services
+        kubectl set image deployment/autonomous-sdlc-scheduler \
+          autonomous-sdlc-scheduler=${{ needs.validate-deployment.outputs.image-tag }} \
+          -n production
+        
+        kubectl rollout status deployment/autonomous-sdlc-scheduler -n production --timeout=600s
+
+    - name: Database migrations
+      run: |
+        # Run database migrations if needed
+        kubectl run migration-job \
+          --image=${{ needs.validate-deployment.outputs.image-tag }} \
+          --rm -i --restart=Never \
+          -n production \
+          -- python manage.py migrate
+
+    - name: Post-deployment configuration
+      run: |
+        # Update configuration
+        kubectl apply -f k8s/production/configmap.yaml -n production
+        
+        # Restart pods to pick up new configuration
+        kubectl rollout restart deployment/autonomous-sdlc-api -n production
+        kubectl rollout restart deployment/autonomous-sdlc-worker -n production
+        
+        # Wait for restart to complete
+        kubectl rollout status deployment/autonomous-sdlc-api -n production --timeout=300s
+        kubectl rollout status deployment/autonomous-sdlc-worker -n production --timeout=300s
+
+  post-deployment-validation:
+    runs-on: ubuntu-latest
+    needs: [validate-deployment, deploy-production]
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Comprehensive health checks
+      run: |
+        # API health checks
+        curl -f "https://autonomous-sdlc.com/health" || exit 1
+        curl -f "https://autonomous-sdlc.com/api/v1/health" || exit 1
+        
+        # A2A framework health
+        curl -f "https://autonomous-sdlc.com/api/v1/agents/health" || exit 1
+        
+        # Database connectivity
+        curl -f "https://autonomous-sdlc.com/api/v1/system/database/health" || exit 1
+
+    - name: Functional testing
+      run: |
+        # Set up test environment
+        pip install -r requirements.txt
+        pip install pytest pytest-asyncio
+        
+        # Run production smoke tests
+        pytest tests/deployment/production_smoke_tests.py -v \
+          --base-url=https://autonomous-sdlc.com
+        
+        # Test A2A functionality
+        python tests/deployment/test_a2a_production.py
+        
+        # Test AI provider integrations
+        python tests/deployment/test_ai_providers_production.py
+
+    - name: Performance validation
+      run: |
+        # Load testing
+        python tests/performance/production_load_test.py \
+          --target=https://autonomous-sdlc.com \
+          --duration=300 \
+          --concurrent-users=50
+        
+        # Response time validation
+        python tests/performance/response_time_check.py \
+          --target=https://autonomous-sdlc.com \
+          --max-response-time=500
+
+    - name: Security validation
+      run: |
+        # Security headers check
+        python tests/security/security_headers_check.py \
+          --target=https://autonomous-sdlc.com
+        
+        # SSL/TLS validation
+        python tests/security/ssl_validation.py \
+          --target=https://autonomous-sdlc.com
+
+  update-monitoring:
+    runs-on: ubuntu-latest
+    needs: [validate-deployment, deploy-production, post-deployment-validation]
+    steps:
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID_PROD }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY_PROD }}
+        aws-region: ${{ env.AWS_REGION }}
+
+    - name: Update deployment metadata
+      run: |
+        # Update deployment tracking
+        aws dynamodb put-item \
+          --table-name autonomous-sdlc-deployments \
+          --item '{
+            "deployment_id": {"S": "'$(date +%Y%m%d-%H%M%S)'"},
+            "version": {"S": "'${{ needs.validate-deployment.outputs.version }}'"},
+            "image": {"S": "'${{ needs.validate-deployment.outputs.image-tag }}'"},
+            "commit": {"S": "'${{ github.sha }}'"},
+            "timestamp": {"S": "'$(date -u)'"},
+            "status": {"S": "SUCCESS"}
+          }'
+
+    - name: Update monitoring dashboards
+      run: |
+        # Update Grafana dashboard with new version
+        python scripts/update_monitoring_dashboards.py \
+          --version=${{ needs.validate-deployment.outputs.version }} \
+          --commit=${{ github.sha }}
+
+  notification:
+    runs-on: ubuntu-latest
+    needs: [validate-deployment, deploy-production, post-deployment-validation, update-monitoring]
+    if: always()
+    steps:
+    - name: Notify success
+      if: success()
+      uses: 8398a7/action-slack@v3
+      with:
+        status: success
+        text: |
+          🎉 Production deployment successful!
+          
+          **Version**: ${{ needs.validate-deployment.outputs.version }}
+          **Image**: ${{ needs.validate-deployment.outputs.image-tag }}
+          **Commit**: ${{ github.sha }}
+          **URL**: https://autonomous-sdlc.com
+      env:
+        SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+
+    - name: Notify failure
+      if: failure()
+      uses: 8398a7/action-slack@v3
+      with:
+        status: failure
+        text: |
+          ❌ Production deployment failed!
+          
+          **Version**: ${{ needs.validate-deployment.outputs.version }}
+          **Check**: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          
+          Automatic rollback may have been initiated.
+      env:
+        SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+
+    - name: Create deployment summary
+      if: always()
+      run: |
+        echo "## Production Deployment Summary" >> $GITHUB_STEP_SUMMARY
+        echo "- **Version**: ${{ needs.validate-deployment.outputs.version }}" >> $GITHUB_STEP_SUMMARY
+        echo "- **Image**: ${{ needs.validate-deployment.outputs.image-tag }}" >> $GITHUB_STEP_SUMMARY
+        echo "- **Commit**: ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
+        echo "- **Status**: ${{ job.status }}" >> $GITHUB_STEP_SUMMARY
+        echo "- **URL**: https://autonomous-sdlc.com" >> $GITHUB_STEP_SUMMARY
+        echo "- **Timestamp**: $(date -u)" >> $GITHUB_STEP_SUMMARY

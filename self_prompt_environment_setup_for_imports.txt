@@ -1,0 +1,36 @@
+Self-Prompt: Environment Setup for Resolving Import Errors in Python Project
+
+Objective:
+- Identify and set up the correct Python environment and dependencies to resolve import errors for modules such as services.ai_providers_simple, models.agent, flask, and routes.
+
+Steps:
+
+1. Identify Python Environment
+- Determine if a virtual environment (venv, conda) is used.
+- If not, create a virtual environment for project isolation.
+
+2. Dependency Management
+- Locate dependency files (requirements.txt, Pipfile, pyproject.toml).
+- Install dependencies using pip or appropriate package manager.
+
+3. Source Path Configuration
+- Ensure the 'src' directory is included in PYTHONPATH or sys.path.
+- Adjust test files to correctly import modules relative to 'src'.
+
+4. Flask and Other External Packages
+- Verify Flask and other external packages are installed in the environment.
+- Install missing packages via pip.
+
+5. Verify Imports
+- Run Python interpreter or test runner to confirm imports resolve.
+- Fix any remaining path or package issues.
+
+6. Documentation
+- Document environment setup steps for future reference.
+
+Deliverables:
+- Working Python environment with all dependencies installed.
+- Resolved import errors in test files and source code.
+- Documentation of setup process.
+
+This self-prompt guides systematic environment setup to fix import resolution issues.

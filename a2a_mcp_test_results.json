@@ -1,0 +1,59 @@
+{
+  "success": true,
+  "workflow_id": "workflow_1752302239",
+  "results": {
+    "research": {
+      "success": true,
+      "research_results": "Research results for: FastAPI best practices",
+      "sources": [
+        "documentation.api",
+        "best-practices.guide"
+      ],
+      "detail_level": "detailed"
+    },
+    "api_discovery": {
+      "success": true,
+      "apis": [
+        {
+          "name": "FastAPI-api",
+          "rating": 4.5,
+          "documentation": "excellent"
+        },
+        {
+          "name": "FastAPI-sdk",
+          "rating": 4.2,
+          "documentation": "good"
+        }
+      ],
+      "technology": "FastAPI",
+      "use_case": "mechanical data processing"
+    },
+    "code_generation": {
+      "success": true,
+      "session_id": "msg_1752302239876",
+      "paradigm": "orchestra",
+      "task": "Generate REST API using FastAPI",
+      "agents": [
+        "claude",
+        "qwen",
+        "gemini"
+      ],
+      "result": "Orchestrated orchestra collaboration for: Generate REST API using FastAPI",
+      "context": {
+        "workflow_id": "workflow_1752302239",
+        "phase": "code_generation",
+        "paradigm": "orchestra"
+      }
+    },
+    "mcp_integration": {
+      "success": true,
+      "research_results": "Research results for: integration patterns FastAPI",
+      "sources": [
+        "documentation.api",
+        "best-practices.guide"
+      ],
+      "detail_level": "detailed"
+    }
+  },
+  "phases_completed": 4
+}
