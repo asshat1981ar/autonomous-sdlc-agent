@@ -34,7 +34,10 @@
       "Bash(ls -la autonomous-sdlc-agent-platform.tar.gz)",
       "Bash(echo \"   - If repository has content: Click ''Add file'' > ''Upload files''\")",
       "Bash(find:*)",
-      "Bash(ls:*)"
+      "Bash(ls:*)",
+      "Bash(git pull:*)",
+      "Bash(ssh-keygen:*)",
+      "Bash(cat:*)"
     ],
     "deny": []
   }
