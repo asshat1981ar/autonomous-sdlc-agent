@@ -1,0 +1,57 @@
+{
+  "system_architect": {
+    "provider": "blackbox.ai",
+    "model": "blackboxai/meta-llama/llama-3.3-70b-instruct:free",
+    "description": "Large-context, advanced reasoning for architecture and design"
+  },
+  "lead_developer": {
+    "provider": "blackbox.ai",
+    "model": "blackboxai/agentica-org/deepcoder-14b-preview:free",
+    "description": "Code generation, debugging, and implementation with DeepCoder-14B"
+  },
+  "research_scientist": {
+    "provider": "blackbox.ai",
+    "model": "blackboxai/thudm/glm-4-32b:free",
+    "description": "General research, algorithm innovation, and technology evaluation"
+  },
+  "devops_engineer": {
+    "provider": "blackbox.ai",
+    "model": "blackboxai/google/gemma-3-12b-it:free",
+    "description": "DevOps, automation, CI/CD pipeline, cloud architecture"
+  },
+  "security_engineer": {
+    "provider": "blackbox.ai",
+    "model": "blackboxai/qwen/qwen3-32b:free",
+    "description": "Security analysis, compliance, and vulnerability assessment"
+  },
+  "qa_engineer": {
+    "provider": "blackbox.ai",
+    "model": "blackboxai/google/gemma-3-4b-it:free",
+    "description": "Automated test generation, quality assurance, and performance testing"
+  },
+  "frontend_specialist": {
+    "provider": "blackbox.ai",
+    "model": "blackboxai/qwen/qwen3-8b:free",
+    "description": "Frontend code, UI/UX, and performance optimization"
+  },
+  "backend_specialist": {
+    "provider": "blackbox.ai",
+    "model": "blackboxai/mistralai/mistral-7b-instruct:free",
+    "description": "Backend, API, and microservices development"
+  },
+  "data_specialist": {
+    "provider": "blackbox.ai",
+    "model": "blackboxai/google/gemma-2-9b-it:free",
+    "description": "Data engineering, ETL, analytics, and ML integration"
+  },
+  "vision_specialist": {
+    "provider": "blackbox.ai",
+    "model": "blackboxai/qwen/qwen2.5-vl-72b-instruct:free",
+    "description": "Image, PDF, and vision-based SDLC tasks"
+  },
+  "long_context_specialist": {
+    "provider": "blackbox.ai",
+    "model": "blackboxai/openrouter/cypher-alpha:free",
+    "description": "Handles extremely large documents, codebases, and multi-part queries"
+  }
+}

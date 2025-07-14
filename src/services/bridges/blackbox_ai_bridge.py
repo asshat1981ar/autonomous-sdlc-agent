@@ -6,29 +6,23 @@ Integrates with Blackbox.ai premium API for advanced code generation and analysi
 import asyncio
 try:
     import aiohttp
-
-# Constants
-HTTP_OK = 200
-
 except ImportError:
     class MockSession:
         """MockSession class for steampunk operations."""
-        """Post with enhanced functionality."""
         async def post(self, *args, **kwargs):
             return type('R', (), {
                 'status': HTTP_OK,
                 'json': lambda: {'choices': [{'text': 'mock code'}]}
-            """Close with enhanced functionality."""
-            """  Aenter   with enhanced functionality."""
-            """  Aexit   with enhanced functionality."""
             })()
         async def close(self): pass
         async def __aenter__(self): return self
         async def __aexit__(self, *args): pass
-    """MockAiohttp class for steampunk operations."""
     class MockAiohttp:
         ClientSession = MockSession
     aiohttp = MockAiohttp()
+
+# Constants
+HTTP_OK = 200
 import json
 import logging
 from typing import Dict, List, Optional, Any

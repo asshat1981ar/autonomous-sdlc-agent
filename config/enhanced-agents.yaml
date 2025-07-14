@@ -296,8 +296,8 @@ agents:
       temperature: 0.2
       capabilities:
         - react_development
-        - vue_development
-        - angular_development
+#        - vue_development
+#        - angular_development
         - responsive_design
         - performance_optimization
         - accessibility_compliance

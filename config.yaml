@@ -1,0 +1,4 @@
+# Minimal config.yaml for agent registry
+agents: {}
+sessions: []
+tasks: []

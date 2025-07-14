@@ -1,0 +1,160 @@
+openapi: 3.1.0
+info:
+  title: Smithery Agent Orchestration Core API
+  version: 1.0.0
+servers:
+  - url: /api/v1
+paths:
+  /tasks:
+    post:
+      summary: Submit a new SDLC task
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TaskSpec'
+      responses:
+        '200':
+          description: Task submitted successfully
+    get:
+      summary: List/query tasks
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: query
+          name: filter
+          schema:
+            type: string
+      responses:
+        '200':
+          description: List of tasks
+  /tasks/{id}:
+    get:
+      summary: Get status/result of task
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Task status and result
+    post:
+      summary: Cancel a running task
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Task cancelled
+  /tasks/{id}/logs:
+    get:
+      summary: Stream logs/events for a task
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Stream of logs/events
+  /agents:
+    post:
+      summary: Register/self-register agent
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AgentCard'
+      responses:
+        '200':
+          description: Agent registered
+    get:
+      summary: Query agents
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: query
+          name: skill
+          schema:
+            type: string
+      responses:
+        '200':
+          description: List of agents
+  /agents/{id}:
+    get:
+      summary: Get agent card/details
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Agent details
+    patch:
+      summary: Update agent info/heartbeat
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AgentUpdate'
+      responses:
+        '200':
+          description: Agent updated
+    delete:
+      summary: Remove/deregister agent
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Agent removed
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    TaskSpec:
+      type: object
+      properties:
+        id:
+          type: string
+        type:
+          type: string
+        payload:
+          type: object
+    AgentCard:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        type:
+          type: string
+        capabilities:
+          type: array
+          items:
+            type: string
+        status:
+          type: string
+    AgentUpdate:
+      type: object
+      properties:
+        name:
+          type: string
+        status:
+          type: string
