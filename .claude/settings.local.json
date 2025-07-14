@@ -37,7 +37,18 @@
       "Bash(ls:*)",
       "Bash(git pull:*)",
       "Bash(ssh-keygen:*)",
-      "Bash(cat:*)"
+      "Bash(cat:*)",
+      "Bash(pip3 install:*)",
+      "Bash(docker:*)",
+      "Bash(kill:*)",
+      "Bash(unzip:*)",
+      "WebFetch(domain:www.blackbox.ai)",
+      "WebFetch(domain:docs.blackbox.ai)",
+      "WebFetch(domain:a2aprotocol.ai)",
+      "Bash(./setup_free_apis.sh:*)",
+      "Bash(test:*)",
+      "Bash(echo:*)",
+      "Bash(apt list:*)"
     ],
     "deny": []
   }

@@ -1,0 +1,50 @@
+version: '3.8'
+services:
+  neo4j:
+    image: neo4j:5.18-enterprise
+    container_name: neo4j-a2a
+    ports:
+      - 7474:7474   # HTTP
+      - 7687:7687   # Bolt
+    environment:
+      NEO4J_AUTH: neo4j/password123
+      NEO4J_ACCEPT_LICENSE_AGREEMENT: "yes"
+      NEO4J_dbms_security_procedures_unrestricted: apoc.*,gds.*
+      NEO4J_dbms_security_procedures_whitelist: apoc.coll.*,apoc.load.*,gds.*
+      NEO4JLABS_PLUGINS: "['apoc','graph-data-science']"
+      NEO4J_dbms_memory_heap_initial__size: 512m
+      NEO4J_dbms_memory_heap_max__size: 2g
+      NEO4J_dbms_memory_pagecache_size: 1g
+      NEO4J_dbms_default__database: a2a
+      NEO4J_dbms_logs_query_enabled: "true"
+      NEO4J_dbms_logs_query_threshold: 0
+    volumes:
+      - ./data/neo4j:/data
+      - ./plugins:/plugins
+      - ./logs/neo4j:/logs
+      - ./import:/var/lib/neo4j/import
+      - ./scripts:/scripts
+    healthcheck:
+      test: [ "CMD-SHELL", "cypher-shell -u neo4j -p password123 'RETURN 1'" ]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    restart: unless-stopped
+
+  # Optional: Neo4j Browser accessible via web interface
+  # Access at http://localhost:7474
+  # Username: neo4j, Password: password123
+  
+  # Redis for caching (optional enhancement)
+  redis:
+    image: redis:7-alpine
+    container_name: redis-a2a
+    ports:
+      - 6379:6379
+    volumes:
+      - ./data/redis:/data
+    restart: unless-stopped
+
+networks:
+  default:
+    name: a2a-network
